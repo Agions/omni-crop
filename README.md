@@ -12,10 +12,11 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/omni-crop"><img src="https://img.shields.io/npm/v/omni-crop.svg?style=flat-square&color=3b82f6" alt="npm version" /></a>
-  <a href="https://github.com"><img src="https://img.shields.io/badge/license-MIT-emerald.svg?style=flat-square" alt="license" /></a>
-  <a href="https://github.com"><img src="https://img.shields.io/badge/PRs-welcome-violet.svg?style=flat-square" alt="PRs Welcome" /></a>
-  <a href="https://github.com"><img src="https://img.shields.io/badge/FPS-60%20(WXS%2FSJS)-success.svg?style=flat-square" alt="60 FPS" /></a>
-  <a href="https://github.com"><img src="https://img.shields.io/badge/zero-dependencies-orange.svg?style=flat-square" alt="Zero Dependencies" /></a>
+  <a href="https://github.com/Agions/omni-crop/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-emerald.svg?style=flat-square" alt="license" /></a>
+  <a href="https://github.com/Agions/omni-crop/actions/workflows/ci.yml"><img src="https://github.com/Agions/omni-crop/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://agions.github.io/omni-crop/"><img src="https://img.shields.io/badge/online-docs%20%26%20demo-blueviolet.svg?style=flat-square" alt="Online Docs & Demo" /></a>
+  <a href="https://github.com/Agions/omni-crop"><img src="https://img.shields.io/badge/FPS-60%20(WXS)-success.svg?style=flat-square" alt="60 FPS" /></a>
+  <a href="https://github.com/Agions/omni-crop"><img src="https://img.shields.io/badge/zero-dependencies-orange.svg?style=flat-square" alt="Zero Dependencies" /></a>
 </p>
 
 ---

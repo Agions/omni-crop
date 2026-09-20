@@ -71,6 +71,14 @@
     "canvas-2d",
     "pinch-zoom"
   ],
-  "author": "",
+  "author": "Agions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agions/omni-crop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Agions/omni-crop/issues"
+  },
+  "homepage": "https://agions.github.io/omni-crop/",
   "license": "MIT"
 }
