@@ -6,7 +6,13 @@ console.log('📦 Building omni-crop unified package...');
 
 // 1. Run TypeScript compiler
 try {
-  execSync('/opt/homebrew/bin/tsc --project tsconfig.json', { stdio: 'inherit' });
+  let tscCmd = 'npx tsc';
+  if (fs.existsSync(path.join(__dirname, '../node_modules/.bin/tsc'))) {
+    tscCmd = `"${path.join(__dirname, '../node_modules/.bin/tsc')}"`;
+  } else if (process.platform === 'darwin' && fs.existsSync('/opt/homebrew/bin/tsc')) {
+    tscCmd = '/opt/homebrew/bin/tsc';
+  }
+  execSync(`${tscCmd} --project tsconfig.json`, { stdio: 'inherit' });
   console.log('✅ TypeScript compilation finished.');
 } catch (e) {
   console.error('❌ TypeScript compilation failed.');

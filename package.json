@@ -80,5 +80,8 @@
     "url": "https://github.com/Agions/omni-crop/issues"
   },
   "homepage": "https://agions.github.io/omni-crop/",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
 }
