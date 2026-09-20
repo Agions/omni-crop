@@ -1,0 +1,171 @@
+var state = {
+  // 当前变换状态
+  currentX: 0,
+  currentY: 0,
+  scale: 1,
+  rotation: 0,
+  flipH: 1,
+  flipV: 1,
+
+  // 单指拖拽跟踪
+  startX: 0,
+  startY: 0,
+
+  // 双指捏合缩放跟踪
+  isPinching: false,
+  startDistance: 0,
+  startScale: 1,
+  startMidX: 0,
+  startMidY: 0,
+
+  // 双指旋转跟踪
+  startAngle: 0,
+  startRotation: 0,
+
+  // 缩放边界
+  minZoom: 0.2,
+  maxZoom: 8.0,
+};
+
+function getDistance(p1, p2) {
+  var x = p1.clientX - p2.clientX;
+  var y = p1.clientY - p2.clientY;
+  return Math.sqrt(x * x + y * y);
+}
+
+function getAngle(p1, p2) {
+  var x = p2.clientX - p1.clientX;
+  var y = p2.clientY - p1.clientY;
+  return (Math.atan2(y, x) * 180) / Math.PI;
+}
+
+function getMidpoint(p1, p2) {
+  return {
+    x: (p1.clientX + p2.clientX) / 2,
+    y: (p1.clientY + p2.clientY) / 2
+  };
+}
+
+function updateTransform(ownerInstance) {
+  var img = ownerInstance.selectComponent('#omni-crop-target-image');
+  if (!img) return;
+
+  var sx = state.scale * state.flipH;
+  var sy = state.scale * state.flipV;
+  var transform = 'translate3d(' + state.currentX + 'px, ' + state.currentY + 'px, 0) rotate(' + state.rotation + 'deg) scale(' + sx + ', ' + sy + ')';
+
+  img.setStyle({
+    transform: transform,
+    '-webkit-transform': transform
+  });
+}
+
+function initPinch(touches) {
+  state.isPinching = true;
+  state.startDistance = getDistance(touches[0], touches[1]);
+  state.startScale = state.scale;
+  state.startAngle = getAngle(touches[0], touches[1]);
+  state.startRotation = state.rotation;
+
+  var mid = getMidpoint(touches[0], touches[1]);
+  state.startMidX = mid.x - state.currentX;
+  state.startMidY = mid.y - state.currentY;
+}
+
+function onTouchStart(e, ownerInstance) {
+  var touches = e.touches;
+  if (!touches || touches.length === 0) return;
+
+  if (touches.length === 1) {
+    state.isPinching = false;
+    state.startX = touches[0].clientX - state.currentX;
+    state.startY = touches[0].clientY - state.currentY;
+  } else if (touches.length >= 2) {
+    initPinch(touches);
+  }
+}
+
+function onTouchMove(e, ownerInstance) {
+  var touches = e.touches;
+  if (!touches || touches.length === 0) return;
+
+  if (touches.length === 1) {
+    if (state.isPinching) {
+      // 从双指切回单指
+      state.isPinching = false;
+      state.startX = touches[0].clientX - state.currentX;
+      state.startY = touches[0].clientY - state.currentY;
+      return;
+    }
+    // 单指平移
+    state.currentX = touches[0].clientX - state.startX;
+    state.currentY = touches[0].clientY - state.startY;
+    updateTransform(ownerInstance);
+  } else if (touches.length >= 2) {
+    // 双指捏合手势
+    if (!state.isPinching || state.startDistance <= 0) {
+      initPinch(touches);
+      return;
+    }
+
+    // 1. 双指距离计算缩放比例
+    var curDist = getDistance(touches[0], touches[1]);
+    if (curDist > 0 && state.startDistance > 0) {
+      var factor = curDist / state.startDistance;
+      var targetScale = state.startScale * factor;
+      // 限制在有效缩放区间内
+      state.scale = Math.min(Math.max(targetScale, state.minZoom), state.maxZoom);
+    }
+
+    // 2. 双指中点跟随，实现围绕手势中心缩放与平移
+    var curMid = getMidpoint(touches[0], touches[1]);
+    state.currentX = curMid.x - state.startMidX;
+    state.currentY = curMid.y - state.startMidY;
+
+    // 3. 实时更新渲染树 (60fps 零跨桥通信)
+    updateTransform(ownerInstance);
+  }
+}
+
+function onTouchEnd(e, ownerInstance) {
+  var touches = e.touches;
+  if (!touches || touches.length === 0) {
+    // 所有手指离开屏幕
+    state.isPinching = false;
+    state.startDistance = 0;
+
+    // 派发手势结束事件给 JS 逻辑层，触发坐标收敛与裁剪计算
+    ownerInstance.callMethod('onWxsGestureEnd', {
+      x: state.currentX,
+      y: state.currentY,
+      scale: state.scale,
+      rotation: state.rotation
+    });
+  } else if (touches.length === 1) {
+    // 抬起其中一指，平滑切回单指继续拖拽
+    state.isPinching = false;
+    state.startX = touches[0].clientX - state.currentX;
+    state.startY = touches[0].clientY - state.currentY;
+  }
+}
+
+function initProps(newVal, oldVal, ownerInstance) {
+  if (!newVal) return;
+  if (newVal.scale !== undefined) state.scale = newVal.scale;
+  if (newVal.rotation !== undefined) state.rotation = newVal.rotation;
+  if (newVal.x !== undefined) state.currentX = newVal.x;
+  if (newVal.y !== undefined) state.currentY = newVal.y;
+  if (newVal.flipH !== undefined) state.flipH = newVal.flipH ? -1 : 1;
+  if (newVal.flipV !== undefined) state.flipV = newVal.flipV ? -1 : 1;
+  if (newVal.minZoom !== undefined) state.minZoom = newVal.minZoom;
+  if (newVal.maxZoom !== undefined) state.maxZoom = newVal.maxZoom;
+
+  updateTransform(ownerInstance);
+}
+
+module.exports = {
+  onTouchStart: onTouchStart,
+  onTouchMove: onTouchMove,
+  onTouchEnd: onTouchEnd,
+  initProps: initProps
+};

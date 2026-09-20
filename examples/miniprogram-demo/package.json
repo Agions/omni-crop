@@ -1,0 +1,8 @@
+{
+  "name": "omni-crop-miniprogram-demo",
+  "version": "1.0.0",
+  "description": "WeChat Miniprogram demo for omni-crop",
+  "dependencies": {
+    "omni-crop": "^1.0.0"
+  }
+}

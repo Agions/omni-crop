@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniCrop 官方技术文档与在线体验</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }
+
+    /* Custom range slider matching user screenshot */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #e5e7eb;
+    }
+    .dark input[type=range]::-webkit-slider-runnable-track {
+      background: #3f3f46;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #60a5fa;
+      cursor: pointer;
+      margin-top: -7px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+      transition: transform 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:active {
+      transform: scale(1.2);
+    }
+
+    .crop-mask-overlay {
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+    }
+  </style>
+</head>
+<body class="bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- Top Global Header -->
+  <header class="border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-[#121214]/95 backdrop-blur sticky top-0 z-50 px-6 py-3 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-4">
+      <a href="#overview" class="flex items-center gap-3 group">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center font-black text-white text-base shadow-sm shadow-blue-500/30 group-hover:scale-105 transition-transform">
+          Ω
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base tracking-tight text-zinc-900 dark:text-white">OmniCrop</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-medium border border-blue-500/20">v1.0.0</span>
+        </div>
+      </a>
+      <span class="hidden md:inline-block text-zinc-400 dark:text-zinc-600">/</span>
+      <span class="hidden md:inline-block text-xs text-zinc-500 dark:text-zinc-400">跨端高性能图片裁剪工具包 (无@无门槛包名)</span>
+    </div>
+
+    <!-- Search & Links & Theme Toggle -->
+    <div class="flex items-center gap-3">
+      <!-- Quick Search Bar -->
+      <div class="relative hidden sm:block">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400 text-xs">🔍</span>
+        <input
+          type="text"
+          id="docs-search"
+          placeholder="搜索 API、手势或配置..."
+          class="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-blue-500 w-44 lg:w-56"
+          oninput="handleSearch(this.value)"
+        />
+      </div>
+
+      <a href="#playground" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm shadow-blue-500/20 transition">
+        🎮 在线演练场
+      </a>
+
+      <!-- Dark/Light Mode Switcher -->
+      <button onclick="toggleDarkMode()" class="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-sm">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Documentation & Studio Container -->
+  <div class="flex-1 max-w-7xl w-full mx-auto flex">
+
+    <!-- Left Sidebar: Professional Documentation Nav -->
+    <aside class="w-64 shrink-0 hidden md:block border-r border-zinc-200 dark:border-zinc-800 p-5 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto space-y-6 text-xs">
+      
+      <!-- Section: 起步 -->
+      <div class="nav-section space-y-2">
+        <h3 class="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">🚀 起步指南</h3>
+        <ul class="space-y-1">
+          <li><a href="#overview" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 font-medium">项目概述与定位</a></li>
+          <li><a href="#installation" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">包矩阵与安装说明</a></li>
+          <li><a href="#playground" class="nav-link block px-2.5 py-1.5 rounded-md text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-950/30">🎮 在线交互演练场</a></li>
+        </ul>
+      </div>
+
+      <!-- Section: 核心架构 -->
+      <div class="nav-section space-y-2">
+        <h3 class="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">⚡ 核心机制与架构</h3>
+        <ul class="space-y-1">
+          <li><a href="#wxs-engine" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">WXS/SJS 60FPS 零跨桥</a></li>
+          <li><a href="#matrix-math" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">几何投影与仿射矩阵</a></li>
+          <li><a href="#zoom-slider-feature" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">双指 Pinch 与拖拽滑块</a></li>
+          <li><a href="#canvas-export" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">Canvas 2D 与防 OOM</a></li>
+        </ul>
+      </div>
+
+      <!-- Section: API 参考 -->
+      <div class="nav-section space-y-2">
+        <h3 class="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">📚 完整 API 参考</h3>
+        <ul class="space-y-1">
+          <li><a href="#props-api" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">组件属性 (Props)</a></li>
+          <li><a href="#events-api" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">事件回调 (Events)</a></li>
+          <li><a href="#ref-api" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">实例方法 (Ref Methods)</a></li>
+          <li><a href="#exporter-api" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">导出器 (omni-crop/exporter)</a></li>
+        </ul>
+      </div>
+
+      <!-- Section: 多端实战指南 -->
+      <div class="nav-section space-y-2">
+        <h3 class="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">💻 多端集成指南</h3>
+        <ul class="space-y-1">
+          <li><a href="#guide-weixin" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">微信原生小程序</a></li>
+          <li><a href="#guide-taro" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">Taro (React / Vue)</a></li>
+          <li><a href="#guide-uniapp" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">uni-app (Vue 3)</a></li>
+          <li><a href="#guide-rn" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">React Native</a></li>
+          <li><a href="#guide-web" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">Web React</a></li>
+        </ul>
+      </div>
+
+      <!-- Section: 常见问题 -->
+      <div class="nav-section space-y-2">
+        <h3 class="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">💡 FAQ 常见问题</h3>
+        <ul class="space-y-1">
+          <li><a href="#faq" class="nav-link block px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80">跨域与移动端排坑</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Center Content: Rich Documentation with Embedded Playground -->
+    <main class="flex-1 p-6 lg:p-10 max-w-4xl space-y-12 overflow-x-hidden">
+      
+      <!-- Section 1: Overview -->
+      <section id="overview" class="space-y-4">
+        <div class="space-y-2">
+          <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">OmniCrop 技术文档</h1>
+          <p class="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
+            <strong>OmniCrop</strong> 是基于 <code class="text-blue-500 font-mono">react-easy-crop</code> 优秀设计思想深度重构的跨端图片裁剪套件，专为<strong>微信小程序原生、Taro、uni-app、React Native 和 Web</strong> 多端生态打造。彻底打破了传统小程序组件卡顿、掉帧与内存泄漏的痛点。
+          </p>
+        </div>
+
+        <!-- Highlights grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div class="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
+            <div class="text-emerald-500 text-base font-bold mb-1">⚡ 60 FPS 零跨桥</div>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">WXS / SJS 视图层脚本直接驱动变换，杜绝频繁 setData 通信延迟。</p>
+          </div>
+          <div class="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
+            <div class="text-blue-500 text-base font-bold mb-1">📐 自由几何变换</div>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">支持 1:1、4:3、16:9 与自由拉伸，支持双指缩放、旋转与水平/垂直镜像。</p>
+          </div>
+          <div class="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
+            <div class="text-indigo-500 text-base font-bold mb-1">🛡️ Canvas 2D 导出</div>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">内置 EXIF 自动纠偏与动态高倍 DPR 抗锯齿，智能降采样防止 iOS 闪退。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Installation without @ -->
+      <section id="installation" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          📦 包矩阵与安装 (非 @ 作用域平铺命名)
+        </h2>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+          根据用户要求，所有包名去除了 <code class="text-amber-500 font-mono">@</code> 命名空间，可直接通过 npm / pnpm / yarn 安装：
+        </p>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <thead class="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
+              <tr>
+                <th class="p-3">平台 / 场景</th>
+                <th class="p-3">Subpath 导出导入路径</th>
+                <th class="p-3">核心底层机制</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950/60 text-zinc-700 dark:text-zinc-300 font-mono">
+              <tr>
+                <td class="p-3 font-sans font-medium text-emerald-600 dark:text-emerald-400">微信原生小程序</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/weixin</td>
+                <td class="p-3 font-sans">WXML + WXSS + WXS 视图层脚本</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-medium text-blue-600 dark:text-blue-400">Taro 3 (React/Vue)</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/taro</td>
+                <td class="p-3 font-sans">跨端同构组件 + Canvas 驱动</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-medium text-green-600 dark:text-green-400">uni-app (Vue 3)</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/uni-app</td>
+                <td class="p-3 font-sans">Vue 3 SFC + useOmniCrop 状态钩子</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-medium text-purple-600 dark:text-purple-400">React Native</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/react-native</td>
+                <td class="p-3 font-sans">Reanimated 3 Worklet + GestureHandler</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-medium text-sky-600 dark:text-sky-400">Web React</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/react （或 omni-crop）</td>
+                <td class="p-3 font-sans">HTML5 Canvas + Pointer Events</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-medium text-amber-600 dark:text-amber-400">核心数学几何计算</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/core</td>
+                <td class="p-3 font-sans">纯 TS 无依赖 Headless 状态机引擎</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-medium text-amber-600 dark:text-amber-400">跨端 Canvas 导出器</td>
+                <td class="p-3 font-bold text-blue-600 dark:text-blue-400">omni-crop/exporter</td>
+                <td class="p-3 font-sans">EXIF 纠偏流水线 + Canvas 2D Driver</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Copyable install block -->
+        <div class="relative group mt-3">
+          <pre class="text-xs font-mono bg-zinc-900 text-zinc-200 p-4 rounded-xl overflow-x-auto border border-zinc-800"><code># 统一安装单个 npm 工具包即可 (零多包分发繁琐)
+npm install omni-crop
+# 或
+pnpm add omni-crop</code></pre>
+          <button onclick="copyCode(this)" class="absolute top-2.5 right-2.5 px-2.5 py-1 text-[11px] rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700">复制</button>
+        </div>
+      </section>
+
+      <!-- Section 3: Interactive Live Playground -->
+      <section id="playground" class="space-y-4">
+        <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
+              <span>🎮 在线交互演练场 (Live Studio)</span>
+            </h2>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">在当前页面直接操控 OmniCrop 核心状态机与真实 Canvas 2D 导出引擎。</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-500 font-medium">可直接交互体验</span>
+        </div>
+
+        <!-- Embedded Interactive Playground -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
+          
+          <!-- Cropper Stage -->
+          <div class="lg:col-span-8 flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-black">
+            <!-- Stage Status Bar -->
+            <div class="px-3.5 py-2 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between text-xs text-zinc-400 font-mono">
+              <span id="demo-status" class="text-emerald-400">● 60 FPS 实时运算</span>
+              <span id="demo-info">缩放: 1.00x · 旋转: 0°</span>
+            </div>
+
+            <!-- Viewport -->
+            <div id="demo-cropper" class="relative w-full h-[360px] overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing select-none">
+              <div id="demo-media-wrap" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <img id="demo-img" src="" alt="Cropper" class="max-w-none origin-center will-change-transform" draggable="false" />
+              </div>
+              <div id="demo-crop-box" class="absolute pointer-events-none border-[1.5px] border-white/95 crop-mask-overlay transition-[width,height] duration-150 ease-out">
+                <div id="demo-grid" class="absolute inset-0">
+                  <div class="absolute w-full h-[1px] bg-white/30 top-1/3"></div>
+                  <div class="absolute w-full h-[1px] bg-white/30 top-2/3"></div>
+                  <div class="absolute h-full w-[1px] bg-white/30 left-1/3"></div>
+                  <div class="absolute h-full w-[1px] bg-white/30 left-2/3"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zoom Slider Bar Matching Screenshot -->
+            <div class="bg-white text-zinc-800 px-4 py-2.5 flex items-center justify-between border-t border-zinc-200">
+              <button onclick="demoStepZoom(-0.2)" class="w-7 h-7 flex items-center justify-center text-xl font-light text-zinc-500 hover:text-zinc-900 cursor-pointer select-none">–</button>
+              <div class="flex-1 mx-3 flex items-center">
+                <input type="range" id="demo-slider" min="1.0" max="4.0" step="0.01" value="1.0" class="w-full h-4 cursor-pointer" oninput="demoOnSlider(this.value)" />
+              </div>
+              <button onclick="demoStepZoom(0.2)" class="w-7 h-7 flex items-center justify-center text-xl font-light text-zinc-500 hover:text-zinc-900 cursor-pointer select-none">+</button>
+              <button onclick="demoReset()" class="flex items-center gap-1 ml-3 px-2.5 py-1 text-xs text-zinc-700 hover:bg-zinc-100 rounded transition cursor-pointer select-none">
+                <span class="font-bold">⟳</span>
+                <span>重置</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Studio Toolbar & Output -->
+          <div class="lg:col-span-4 space-y-3.5 text-xs">
+            <div class="space-y-1">
+              <span class="font-semibold text-zinc-700 dark:text-zinc-300">测试图片</span>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="demoLoadImage('nature')" class="py-1.5 px-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-center font-medium">自然测试图</button>
+                <button onclick="demoLoadImage('avatar')" class="py-1.5 px-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-center font-medium">头像测试图</button>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <span class="font-semibold text-zinc-700 dark:text-zinc-300">裁剪比例</span>
+              <div class="grid grid-cols-4 gap-1.5">
+                <button onclick="demoSetAspect(1, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">1:1</button>
+                <button onclick="demoSetAspect(4/3, this)" class="demo-aspect-btn py-1 rounded bg-blue-600 text-white font-medium">4:3</button>
+                <button onclick="demoSetAspect(16/9, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">16:9</button>
+                <button onclick="demoSetAspect('free', this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">自由</button>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <span class="font-semibold text-zinc-700 dark:text-zinc-300">几何操作</span>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="demoRotate()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">🔄 90°</button>
+                <button onclick="demoFlipH()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">↔️ 翻转</button>
+                <button onclick="demoFlipV()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">↕️ 翻转</button>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button onclick="demoExport()" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 transition">
+                ✂️ 执行裁剪生成图片
+              </button>
+            </div>
+
+            <div class="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-[11px] text-zinc-600 dark:text-zinc-400">导出预览</span>
+                <span id="demo-export-size" class="text-[10px] font-mono text-zinc-500">- × - px</span>
+              </div>
+              <div class="w-full h-24 bg-zinc-950 rounded flex items-center justify-center overflow-hidden border border-zinc-800">
+                <img id="demo-export-img" src="" alt="导出结果" class="max-h-full max-w-full object-contain" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: 60FPS WXS Engine Deep Dive -->
+      <section id="wxs-engine" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          ⚡ 60FPS 零跨桥手势引擎工作原理
+        </h2>
+        
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          微信小程序采用<strong>双线程模型</strong>（逻辑层 JS 与 视图层 WebView 物理隔离）。如果像传统组件那样在 <code class="font-mono text-blue-500">touchmove</code> 中触发 <code class="font-mono text-red-500">setData</code>，每次事件都需要经历 JSON 序列化、跨进程通信以及反序列化，导致无法跟手。
+        </p>
+
+        <div class="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 space-y-2 text-xs text-zinc-600 dark:text-zinc-300">
+          <span class="font-bold text-blue-500 text-sm">💡 WXS 零通信架构：</span>
+          <p>
+            1. 在 <code class="font-mono text-blue-400">index.wxs</code> 视图脚本中直接绑定 <code class="font-mono">onTouchStart / onTouchMove / onTouchEnd</code>。<br>
+            2. 手势移动期间，实时根据双指距离计算缩放比例，并通过 <code class="font-mono">ownerInstance.selectComponent().setStyle({ transform: ... })</code> 直接操作渲染节点。<br>
+            3. <strong>只有手指完全脱离屏幕时</strong>，才调用 <code class="font-mono">ownerInstance.callMethod('onWxsGestureEnd')</code> 向逻辑线程派发最终坐标。
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5: Props & API -->
+      <section id="props-api" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          📚 组件 Props 属性参考
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <thead class="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
+              <tr>
+                <th class="p-3">属性名</th>
+                <th class="p-3">类型</th>
+                <th class="p-3">默认值</th>
+                <th class="p-3">说明</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950/60 text-zinc-700 dark:text-zinc-300 font-mono">
+              <tr>
+                <td class="p-3 font-bold text-blue-500">image</td>
+                <td class="p-3">string</td>
+                <td class="p-3 text-red-500">必填</td>
+                <td class="p-3 font-sans">图片 URL 地址、本地临时路径或 Base64</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">aspect</td>
+                <td class="p-3">number | 'free'</td>
+                <td class="p-3">4 / 3</td>
+                <td class="p-3 font-sans">裁剪比例（如 1、4/3、16/9），传入 'free' 为自由比例</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">cropShape</td>
+                <td class="p-3">'rect' | 'round'</td>
+                <td class="p-3">'rect'</td>
+                <td class="p-3 font-sans">裁剪框形状（'rect' 矩形，'round' 圆形头像遮罩）</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">showGrid</td>
+                <td class="p-3">boolean</td>
+                <td class="p-3">true</td>
+                <td class="p-3 font-sans">是否展示九宫格辅助网格线</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">restrictPosition</td>
+                <td class="p-3">boolean</td>
+                <td class="p-3">true</td>
+                <td class="p-3 font-sans">防露白限制：开启后图片边缘不可移入裁剪框内部</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 6: Ref Methods -->
+      <section id="ref-api" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          🛠️ 组件 Ref 实例方法 (Imperative API)
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <thead class="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
+              <tr>
+                <th class="p-3">方法名</th>
+                <th class="p-3">参数</th>
+                <th class="p-3">返回值</th>
+                <th class="p-3">说明</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950/60 text-zinc-700 dark:text-zinc-300 font-mono">
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">rotate(stepAngle)</td>
+                <td class="p-3">number = 90</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">顺时针旋转指定角度</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">zoomIn(step)</td>
+                <td class="p-3">number = 0.25</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">步进放大</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">zoomOut(step)</td>
+                <td class="p-3">number = 0.25</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">步进缩小</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">setZoom(zoom)</td>
+                <td class="p-3">number</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">精准设置缩放倍率（与滑块拖动无缝绑定）</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">flipHorizontal()</td>
+                <td class="p-3">-</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">水平翻转切换</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">flipVertical()</td>
+                <td class="p-3">-</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">垂直翻转切换</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">reset()</td>
+                <td class="p-3">-</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">重置所有变换至初始值</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">exportCroppedImage(opts)</td>
+                <td class="p-3">ExportOptions</td>
+                <td class="p-3">Promise&lt;CropResult&gt;</td>
+                <td class="p-3 font-sans">通过 Canvas 2D 离屏导出裁切图片路径</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 7: WeChat Guide -->
+      <section id="guide-weixin" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          📱 微信原生小程序完整集成示例
+        </h2>
+
+        <div class="relative group">
+          <pre class="text-xs font-mono bg-zinc-900 text-zinc-200 p-4 rounded-xl overflow-x-auto border border-zinc-800"><code>// page.json
+{
+  "usingComponents": {
+    "omni-crop": "omni-crop/weixin"
+  }
+}
+
+&lt;!-- page.wxml --&gt;
+&lt;omni-crop
+  id="cropper"
+  image="{{imageUrl}}"
+  aspect="{{1}}"
+  cropShape="round"
+  bindcropcomplete="onCropComplete"
+/&gt;
+
+&lt;view class="zoom-slider-bar"&gt;
+  &lt;text bindtap="onZoomOut"&gt;–&lt;/text&gt;
+  &lt;slider min="1" max="4" step="0.01" value="{{zoom}}" bindchanging="onZoomSlider" /&gt;
+  &lt;text bindtap="onZoomIn"&gt;+&lt;/text&gt;
+  &lt;text bindtap="onReset"&gt;⟳ 重置&lt;/text&gt;
+&lt;/view&gt;
+
+&lt;button bindtap="doExport"&gt;导出头像&lt;/button&gt;
+
+// page.js
+Page({
+  data: { imageUrl: 'https://cdn.example.com/demo.jpg', zoom: 1 },
+  onZoomSlider(e) {
+    this.selectComponent('#cropper').setZoom(e.detail.value);
+  },
+  async doExport() {
+    const res = await this.selectComponent('#cropper').exportCroppedImage({
+      format: 'png',
+      quality: 0.95,
+      dpr: 2
+    });
+    console.log('裁剪文件本地路径:', res.uri);
+  }
+});</code></pre>
+          <button onclick="copyCode(this)" class="absolute top-2.5 right-2.5 px-2.5 py-1 text-[11px] rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700">复制</button>
+        </div>
+      </section>
+
+      <!-- Section 8: FAQ -->
+      <section id="faq" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          💡 常见问题与解决方案 (FAQ)
+        </h2>
+
+        <div class="space-y-3 text-xs">
+          <details class="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 open:bg-zinc-50 dark:open:bg-zinc-900">
+            <summary class="font-bold cursor-pointer text-zinc-800 dark:text-zinc-200">Q: 为什么裁剪远程 CDN 图片时偶尔黑屏或提示跨域？</summary>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>解答</strong>：微信小程序 Canvas 2D 规范要求外链图片必须具备有效下载凭证。<code class="font-mono text-blue-400">omni-crop/exporter</code> 内置了 <code class="font-mono">wx.downloadFile</code> 自动拦截预加载，确保图片先落盘到本地临时文件再写入 Canvas，同时请在微信开放平台将您的 CDN 域名添加到合法 downloadFile 白名单中。
+            </p>
+          </details>
+
+          <details class="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60">
+            <summary class="font-bold cursor-pointer text-zinc-800 dark:text-zinc-200">Q: 如何防止低端 iPhone 导出 4K/2000万像素照片时闪退？</summary>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>解答</strong>：<code class="font-mono text-blue-400">omni-crop/exporter</code> 默认限制了 <code class="font-mono">maxResolution: 4096</code>。若用户原图高达 8000 像素，导出器会自动执行保比例下采样（Downsampling），彻底避免 iOS WebView 显存崩溃（OOM）。
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="border-t border-zinc-200 dark:border-zinc-800 pt-6 pb-12 flex flex-col sm:flex-row justify-between items-center text-xs text-zinc-500 gap-3">
+        <div>OmniCrop Project · Released under the MIT License.</div>
+        <div>面向小程序与跨端现代技术栈构建</div>
+      </footer>
+    </main>
+
+    <!-- Right Toc: On this page -->
+    <aside class="w-48 shrink-0 hidden lg:block p-6 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto text-xs space-y-3">
+      <h4 class="font-semibold text-zinc-400 uppercase tracking-wider text-[11px]">本页目录</h4>
+      <ul class="space-y-2 text-zinc-500 dark:text-zinc-400">
+        <li><a href="#overview" class="hover:text-blue-500">项目定位</a></li>
+        <li><a href="#installation" class="hover:text-blue-500">包矩阵安装</a></li>
+        <li><a href="#playground" class="hover:text-blue-500 text-blue-500 font-medium">在线演练场</a></li>
+        <li><a href="#wxs-engine" class="hover:text-blue-500">60FPS 机制</a></li>
+        <li><a href="#props-api" class="hover:text-blue-500">Props 属性</a></li>
+        <li><a href="#ref-api" class="hover:text-blue-500">Ref 方法</a></li>
+        <li><a href="#guide-weixin" class="hover:text-blue-500">微信小程序示例</a></li>
+        <li><a href="#faq" class="hover:text-blue-500">常见问题</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <!-- Client-side Interactive Engine Scripts -->
+  <script>
+    // Theme toggle
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      document.getElementById('theme-icon').textContent = isDark ? '🌙' : '☀️';
+    }
+
+    // Copy code snippet
+    function copyCode(btn) {
+      const code = btn.parentElement.querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const origin = btn.textContent;
+        btn.textContent = '已复制!';
+        btn.classList.add('bg-emerald-600', 'text-white');
+        setTimeout(() => {
+          btn.textContent = origin;
+          btn.classList.remove('bg-emerald-600', 'text-white');
+        }, 1500);
+      });
+    }
+
+    // Quick Search filter
+    function handleSearch(query) {
+      const q = query.toLowerCase().trim();
+      const sections = document.querySelectorAll('main > section');
+      sections.forEach(sec => {
+        if (!q) {
+          sec.style.display = 'block';
+          return;
+        }
+        const text = sec.innerText.toLowerCase();
+        sec.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    }
+
+    // Interactive Demo Engine
+    const demoState = {
+      imageSrc: '',
+      crop: { x: 0, y: 0 },
+      zoom: 1.0,
+      rotation: 0,
+      flipH: 1,
+      flipV: 1,
+      aspect: 4 / 3,
+      cropW: 0,
+      cropH: 0,
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      initialCrop: { x: 0, y: 0 }
+    };
+
+    function createSampleDataURL(text, bg1, bg2) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 800; canvas.height = 600;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 800, 600);
+      grad.addColorStop(0, bg1);
+      grad.addColorStop(1, bg2);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 800, 600);
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < 800; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke(); }
+      for (let y = 0; y < 600; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke(); }
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 400, 300);
+      return canvas.toDataURL('image/png');
+    }
+
+    const demoSamples = {
+      nature: createSampleDataURL('OmniCrop 自然风景 800×600', '#0284c7', '#10b981'),
+      avatar: createSampleDataURL('OmniCrop 人物头像 800×600', '#ec4899', '#8b5cf6')
+    };
+
+    const demoCropper = document.getElementById('demo-cropper');
+    const demoImg = document.getElementById('demo-img');
+    const demoCropBox = document.getElementById('demo-crop-box');
+    const demoSlider = document.getElementById('demo-slider');
+    const demoInfo = document.getElementById('demo-info');
+
+    function demoUpdateBox() {
+      const cw = demoCropper.clientWidth || 500;
+      const ch = demoCropper.clientHeight || 360;
+      const pad = 24;
+      const mw = cw - pad * 2;
+      const mh = ch - pad * 2;
+
+      let bw, bh;
+      if (demoState.aspect === 'free') {
+        bw = Math.min(mw, mh); bh = bw;
+      } else if (mw / mh > demoState.aspect) {
+        bh = mh; bw = bh * demoState.aspect;
+      } else {
+        bw = mw; bh = bw / demoState.aspect;
+      }
+
+      demoState.cropW = bw;
+      demoState.cropH = bh;
+      demoCropBox.style.width = bw + 'px';
+      demoCropBox.style.height = bh + 'px';
+      demoRender();
+    }
+
+    function demoRender() {
+      const sx = demoState.zoom * demoState.flipH;
+      const sy = demoState.zoom * demoState.flipV;
+      demoImg.style.transform = `translate3d(${demoState.crop.x}px, ${demoState.crop.y}px, 0) rotate(${demoState.rotation}deg) scale(${sx}, ${sy})`;
+      demoInfo.textContent = `缩放: ${demoState.zoom.toFixed(2)}x · 旋转: ${demoState.rotation}°`;
+      demoSlider.value = demoState.zoom;
+    }
+
+    function demoLoadImage(key) {
+      demoState.imageSrc = demoSamples[key];
+      demoImg.src = demoSamples[key];
+      demoReset();
+      demoUpdateBox();
+    }
+
+    function demoReset() {
+      demoState.crop = { x: 0, y: 0 };
+      demoState.zoom = 1.0;
+      demoState.rotation = 0;
+      demoState.flipH = 1;
+      demoState.flipV = 1;
+      demoRender();
+    }
+
+    function demoOnSlider(val) {
+      demoState.zoom = parseFloat(val);
+      demoRender();
+    }
+
+    function demoStepZoom(delta) {
+      demoState.zoom = Math.min(4.0, Math.max(1.0, Number((demoState.zoom + delta).toFixed(2))));
+      demoRender();
+    }
+
+    function demoRotate() {
+      demoState.rotation = (demoState.rotation + 90) % 360;
+      demoRender();
+    }
+
+    function demoFlipH() {
+      demoState.flipH = demoState.flipH === 1 ? -1 : 1;
+      demoRender();
+    }
+
+    function demoFlipV() {
+      demoState.flipV = demoState.flipV === 1 ? -1 : 1;
+      demoRender();
+    }
+
+    function demoSetAspect(aspect, btn) {
+      demoState.aspect = aspect;
+      document.querySelectorAll('.demo-aspect-btn').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.add('bg-zinc-200', 'dark:bg-zinc-800');
+      });
+      btn.classList.add('bg-blue-600', 'text-white');
+      btn.classList.remove('bg-zinc-200', 'dark:bg-zinc-800');
+      demoUpdateBox();
+    }
+
+    // Dragging
+    demoCropper.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      demoState.isDragging = true;
+      demoState.startX = e.clientX;
+      demoState.startY = e.clientY;
+      demoState.initialCrop = { ...demoState.crop };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!demoState.isDragging) return;
+      demoState.crop.x = demoState.initialCrop.x + (e.clientX - demoState.startX);
+      demoState.crop.y = demoState.initialCrop.y + (e.clientY - demoState.startY);
+      demoRender();
+    });
+
+    window.addEventListener('mouseup', () => {
+      demoState.isDragging = false;
+    });
+
+    // Mouse wheel zoom
+    demoCropper.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.0015;
+      demoState.zoom = Math.min(4.0, Math.max(1.0, demoState.zoom + delta));
+      demoRender();
+    }, { passive: false });
+
+    // Export execution
+    function demoExport() {
+      const c = document.createElement('canvas');
+      const ctx = c.getContext('2d');
+      const w = Math.round(demoState.cropW * 2);
+      const h = Math.round(demoState.cropH * 2);
+      c.width = w; c.height = h;
+
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      if (demoState.rotation !== 0) ctx.rotate((demoState.rotation * Math.PI) / 180);
+      ctx.scale(demoState.flipH, demoState.flipV);
+
+      const renderW = demoState.cropW * demoState.zoom * 2;
+      const renderH = (demoState.cropW / 800) * 600 * demoState.zoom * 2;
+      const dx = -renderW / 2 + (demoState.crop.x * 2);
+      const dy = -renderH / 2 + (demoState.crop.y * 2);
+
+      ctx.drawImage(demoImg, dx, dy, renderW, renderH);
+      ctx.restore();
+
+      const url = c.toDataURL('image/png');
+      document.getElementById('demo-export-img').src = url;
+      document.getElementById('demo-export-size').textContent = `${w} × ${h} px`;
+    }
+
+    // Init
+    window.addEventListener('resize', demoUpdateBox);
+    demoLoadImage('nature');
+  </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+.demo-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #09090b;
+  overflow: hidden;
+}
+
+/* 顶部信息栏 */
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #18181b;
+  border-bottom: 1px solid #27272a;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fafafa;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sub {
+  margin: 0 !important;
+  background: #27272a !important;
+  color: #e4e4e7 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  border: 1px solid #3f3f46 !important;
+  padding: 0 10px !important;
+  line-height: 28px !important;
+}
+
+/* 裁剪区域主体 */
+.cropper-viewport {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  background-color: #000;
+}
+
+/* 缩放滑块控制条 (与用户指定截图视觉 100% 对齐) */
+.zoom-slider-bar {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  background-color: #ffffff;
+  padding: 0 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.zoom-symbol {
+  font-size: 22px;
+  font-weight: 500;
+  color: #6b7280;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.zoom-symbol:active {
+  color: #1f2937;
+  opacity: 0.7;
+}
+
+.slider-track-box {
+  flex: 1;
+  margin: 0 4px;
+}
+
+.zoom-slider {
+  margin: 0 !important;
+}
+
+.zoom-reset-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 14px;
+  padding: 6px 8px;
+  color: #4b5563;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.zoom-reset-btn:active {
+  opacity: 0.7;
+}
+
+.reset-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.reset-text {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* 底部操作面板 */
+.control-panel {
+  background-color: #18181b;
+  padding: 14px 16px;
+  border-top: 1px solid #27272a;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.group-label {
+  font-size: 13px;
+  color: #a1a1aa;
+  width: 32px;
+}
+
+.btn-group {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+}
+
+.pill-btn {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  padding: 6px 0;
+  background-color: #27272a;
+  color: #d4d4d8;
+  border-radius: 6px;
+  border: 1px solid #3f3f46;
+  transition: all 0.2s;
+}
+
+.pill-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #3b82f6;
+  font-weight: 600;
+}
+
+/* 手势提示条 */
+.gesture-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: rgba(37, 99, 235, 0.1);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  border-radius: 6px;
+}
+
+.tip-icon {
+  font-size: 13px;
+}
+
+.tip-text {
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+/* 工具按钮行 */
+.tools-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 4px 0;
+  border-top: 1px solid #27272a;
+  border-bottom: 1px solid #27272a;
+}
+
+.tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.tool-btn:active {
+  background-color: #27272a;
+}
+
+.tool-icon {
+  font-size: 18px;
+}
+
+.tool-text {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+/* 导出主按钮 */
+.btn-export {
+  width: 100% !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 44px !important;
+  margin-top: 4px;
+}
+
+/* 导出结果弹窗 */
+.result-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1001;
+  width: 86%;
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #27272a;
+}
+
+.modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fafafa;
+}
+
+.modal-close {
+  font-size: 16px;
+  color: #71717a;
+  padding: 4px;
+}
+
+.modal-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-img {
+  width: 240px;
+  height: 240px;
+  background-color: #09090b;
+  border-radius: 8px;
+  border: 1px dashed #3f3f46;
+}
+
+.preview-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-item {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 12px 16px;
+  gap: 10px;
+  border-top: 1px solid #27272a;
+}
+
+.btn-save {
+  flex: 1 !important;
+  background-color: #2563eb !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+  line-height: 36px !important;
+}
+
+.btn-cancel {
+  flex: 1 !important;
+  background-color: #27272a !important;
+  color: #d4d4d8 !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+  line-height: 36px !important;
+}

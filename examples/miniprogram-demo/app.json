@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#18181b",
+    "navigationBarTitleText": "OmniCrop 裁剪演示",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#09090b"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

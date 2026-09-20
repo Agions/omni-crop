@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "OmniCrop 裁剪全功能演示",
+  "usingComponents": {
+    "omni-crop": "omni-crop/weixin"
+  }
+}

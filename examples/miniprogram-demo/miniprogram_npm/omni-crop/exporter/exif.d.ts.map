@@ -1,0 +1,1 @@
+{"version":3,"file":"exif.d.ts","sourceRoot":"","sources":["../../src/exporter/exif.ts"],"names":[],"mappings":"AAAA;;;GAGG;AACH,wBAAgB,wBAAwB,CAAC,MAAM,EAAE,WAAW,GAAG,MAAM,CAqCpE;AAED,MAAM,WAAW,cAAc;IAC7B,QAAQ,EAAE,MAAM,CAAC;IACjB,cAAc,EAAE,OAAO,CAAC;CACzB;AAED;;GAEG;AACH,wBAAgB,iBAAiB,CAAC,WAAW,EAAE,MAAM,GAAG,cAAc,CAoBrE"}

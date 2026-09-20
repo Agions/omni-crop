@@ -1,0 +1,107 @@
+.omni-crop-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+}
+
+.omni-crop-media-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.omni-crop-media {
+  will-change: transform;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+/* 裁剪框与遮罩层（使用 9999px box-shadow 镂空方案） */
+.omni-crop-overlay {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  transition: width 0.15s ease-out, height 0.15s ease-out;
+}
+
+.omni-crop-overlay.is-round {
+  border-radius: 50%;
+}
+
+/* 九宫格参考线 */
+.omni-crop-grid-line {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.line-horizontal {
+  width: 100%;
+  height: 1px;
+}
+
+.line-h-1 {
+  top: 33.33%;
+}
+
+.line-h-2 {
+  top: 66.66%;
+}
+
+.line-vertical {
+  height: 100%;
+  width: 1px;
+}
+
+.line-v-1 {
+  left: 33.33%;
+}
+
+.line-v-2 {
+  left: 66.66%;
+}
+
+/* 模式 B 调整角标 */
+.omni-crop-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #3b82f6;
+  border-style: solid;
+  pointer-events: auto;
+}
+
+.corner-tl {
+  top: -2px;
+  left: -2px;
+  border-width: 3px 0 0 3px;
+}
+
+.corner-tr {
+  top: -2px;
+  right: -2px;
+  border-width: 3px 3px 0 0;
+}
+
+.corner-bl {
+  bottom: -2px;
+  left: -2px;
+  border-width: 0 0 3px 3px;
+}
+
+.corner-br {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 3px 3px 0;
+}

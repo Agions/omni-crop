@@ -1,0 +1,45 @@
+<wxs module="wxs" src="./index.wxs"></wxs>
+
+<view
+  class="omni-crop-container"
+  change:prop="{{wxs.initProps}}"
+  prop="{{wxsProps}}"
+  bindtouchstart="{{wxs.onTouchStart}}"
+  catchtouchmove="{{wxs.onTouchMove}}"
+  bindtouchend="{{wxs.onTouchEnd}}"
+  bindtouchcancel="{{wxs.onTouchEnd}}"
+>
+  <!-- Image media layer -->
+  <view class="omni-crop-media-wrapper">
+    <image
+      id="omni-crop-target-image"
+      class="omni-crop-media"
+      src="{{image}}"
+      mode="aspectFit"
+      bindload="onImageLoaded"
+      binderror="onImageError"
+    />
+  </view>
+
+  <!-- Mask Overlay and Crop Window -->
+  <view
+    class="omni-crop-overlay {{cropShape === 'round' ? 'is-round' : ''}}"
+    style="width: {{cropSize.width}}px; height: {{cropSize.height}}px;"
+  >
+    <!-- Grid lines -->
+    <block wx:if="{{showGrid}}">
+      <view class="omni-crop-grid-line line-horizontal line-h-1"></view>
+      <view class="omni-crop-grid-line line-horizontal line-h-2"></view>
+      <view class="omni-crop-grid-line line-vertical line-v-1"></view>
+      <view class="omni-crop-grid-line line-vertical line-v-2"></view>
+    </block>
+
+    <!-- Corner handles for Mode B (free box resizing) -->
+    <block wx:if="{{cropMode === 'resize-box'}}">
+      <view class="omni-crop-corner corner-tl"></view>
+      <view class="omni-crop-corner corner-tr"></view>
+      <view class="omni-crop-corner corner-bl"></view>
+      <view class="omni-crop-corner corner-br"></view>
+    </block>
+  </view>
+</view>

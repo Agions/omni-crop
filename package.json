@@ -1,0 +1,76 @@
+{
+  "name": "omni-crop",
+  "version": "1.0.0",
+  "description": "High performance cross-platform image cropper for WeChat Miniprogram, Taro, uni-app, React Native and Web",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "miniprogram": "dist",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./weixin": {
+      "types": "./dist/weixin/index.d.ts",
+      "require": "./dist/weixin/index.js",
+      "default": "./dist/weixin/index.js"
+    },
+    "./weixin/*": "./dist/weixin/*",
+    "./taro": {
+      "types": "./dist/taro/index.d.ts",
+      "require": "./dist/taro/index.js",
+      "default": "./dist/taro/index.js"
+    },
+    "./uni-app": {
+      "types": "./dist/uni-app/index.d.ts",
+      "require": "./dist/uni-app/index.js",
+      "default": "./dist/uni-app/index.js"
+    },
+    "./react-native": {
+      "types": "./dist/react-native/index.d.ts",
+      "require": "./dist/react-native/index.js",
+      "default": "./dist/react-native/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "require": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "require": "./dist/core/index.js",
+      "default": "./dist/core/index.js"
+    },
+    "./exporter": {
+      "types": "./dist/exporter/index.d.ts",
+      "require": "./dist/exporter/index.js",
+      "default": "./dist/exporter/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "weixin"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node --test tests/core/matrix.test.cjs tests/core/controller.test.cjs tests/exporter/exif.test.cjs",
+    "clean": "rm -rf dist weixin"
+  },
+  "keywords": [
+    "cropper",
+    "image-cropper",
+    "miniprogram",
+    "wechat",
+    "taro",
+    "uni-app",
+    "react-native",
+    "wxs",
+    "canvas-2d",
+    "pinch-zoom"
+  ],
+  "author": "",
+  "license": "MIT"
+}

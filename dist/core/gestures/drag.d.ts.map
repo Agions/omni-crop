@@ -1,0 +1,1 @@
+{"version":3,"file":"drag.d.ts","sourceRoot":"","sources":["../../../src/core/gestures/drag.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,KAAK,EAAE,IAAI,EAAE,IAAI,EAAE,YAAY,EAAE,MAAM,UAAU,CAAC;AAE3D;;GAEG;AACH,wBAAgB,qBAAqB,CACnC,UAAU,EAAE,IAAI,EAChB,MAAM,EAAE,YAAY,EACpB,KAAK,EAAE,KAAK,EACZ,aAAa,EAAE,IAAI,EACnB,MAAM,EAAE,MAAM,GAAG,MAAM,EACvB,UAAU,SAAK,GACd,IAAI,CAyFN"}
