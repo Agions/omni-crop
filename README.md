@@ -1,7 +1,7 @@
 # omni-crop
 
 <p align="center">
-  <img src="./examples/miniprogram-demo/assets/sample.png" width="120" height="120" alt="OmniCrop Logo" style="border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);" />
+  <img src="./assets/omni-crop-preview.jpg" width="820" alt="OmniCrop 移动端全功能裁剪界面预览" style="max-width: 100%; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.25);" />
 </p>
 
 <h3 align="center">面向微信小程序与跨端技术栈的高性能图片裁剪引擎</h3>
