@@ -1,6 +1,6 @@
 {
   "name": "omni-crop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "High performance cross-platform image cropper for WeChat Miniprogram, Taro, uni-app, React Native and Web",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -71,6 +71,17 @@
     "canvas-2d",
     "pinch-zoom"
   ],
-  "author": "",
-  "license": "MIT"
+  "author": "Agions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agions/omni-crop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Agions/omni-crop/issues"
+  },
+  "homepage": "https://agions.github.io/omni-crop/",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
 }
