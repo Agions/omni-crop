@@ -113,9 +113,9 @@ for (const file of weixinFiles) {
 // Copy and patch compiled weixin js and d.ts to root weixin/
 if (fs.existsSync(path.join(weixinDist, 'index.js'))) {
   let weixinJs = fs.readFileSync(path.join(weixinDist, 'index.js'), 'utf8');
-  // Rewrite any relative require without .js or /index to explicit paths
-  weixinJs = weixinJs.replace(/require\(["']\.\.\/core["']\)/g, 'require("../core/index.js")');
-  weixinJs = weixinJs.replace(/require\(["']\.\.\/exporter["']\)/g, 'require("../exporter/index.js")');
+  // Rewrite any relative require to explicit .js paths for WeChat WAService runtime
+  weixinJs = weixinJs.replace(/require\(["']\.\.\/core(\/index)?(\.js)?["']\)/g, 'require("../core/index.js")');
+  weixinJs = weixinJs.replace(/require\(["']\.\.\/exporter(\/index)?(\.js)?["']\)/g, 'require("../exporter/index.js")');
   fs.writeFileSync(path.join(weixinDist, 'index.js'), weixinJs, 'utf8');
   fs.writeFileSync(path.join(weixinRoot, 'index.js'), weixinJs, 'utf8');
 }

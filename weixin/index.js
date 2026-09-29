@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("../core/index");
-const index_2 = require("../exporter/index");
+const index_1 = require("../core/index.js");
+const index_2 = require("../exporter/index.js");
 Component({
     properties: {
         image: {
