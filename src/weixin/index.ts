@@ -1,8 +1,8 @@
 declare const Component: any;
 declare const wx: any;
 
-import { OmniCropController, AreaPixels, AreaPercent } from '../core';
-import { getCroppedImage, WechatCanvas2DDriver, ExportOptions, CropResult } from '../exporter';
+import { OmniCropController, AreaPixels, AreaPercent } from '../core/index';
+import { getCroppedImage, WechatCanvas2DDriver, ExportOptions, CropResult } from '../exporter/index';
 
 Component({
   properties: {

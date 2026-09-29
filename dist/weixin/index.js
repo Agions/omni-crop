@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = require("../core");
-const exporter_1 = require("../exporter");
+const index_1 = require("../core/index");
+const index_2 = require("../exporter/index");
 Component({
     properties: {
         image: {
@@ -62,8 +62,8 @@ Component({
     },
     lifetimes: {
         attached() {
-            this.canvasDriver = new exporter_1.WechatCanvas2DDriver();
-            this.controller = new core_1.OmniCropController({
+            this.canvasDriver = new index_2.WechatCanvas2DDriver();
+            this.controller = new index_1.OmniCropController({
                 aspect: this.data.aspect,
                 cropShape: this.data.cropShape,
                 cropMode: this.data.cropMode,
@@ -204,7 +204,7 @@ Component({
             this._isExporting = true;
             try {
                 const state = this.controller.getState();
-                return await (0, exporter_1.getCroppedImage)({
+                return await (0, index_2.getCroppedImage)({
                     imageSrc: this.data.image,
                     pixelCrop: this.currentPixels,
                     rotation: state.rotation,

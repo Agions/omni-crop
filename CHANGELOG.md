@@ -4,6 +4,19 @@
 
 ---
 
+## [1.0.3] - 2026-09-29
+
+### 🐛 缺陷修复 (Bug Fixes)
+- **微信小程序 WAService 运行时 npm 相对路径解析修复**：
+  - 修复微信小程序在运行 `omni-crop/weixin` 组件时抛出 `Error: module 'miniprogram_npm/omni-crop/core.js' is not defined, require args is '../core'` 的缺陷。
+  - 原因：微信小程序基础库运行时（WAService）对于相对模块路径 `require('../core')` 不会自动解析目录下的隐式 `index.js`，导致找不到 `core.js`。
+  - 修复：
+    1. 将 `src/weixin/index.ts` 中的依赖引入显式更新为 `require('../core/index')` 和 `require('../exporter/index')`；
+    2. 在构建流水线 `scripts/build.js` 中自动生成根级 `dist/core.js` 与 `dist/exporter.js` 兼容代理入口，实现双重防御；
+    3. 同步更新 `examples/miniprogram-demo` 中的 `miniprogram_npm` 产物，确保导入即跑，零报错。
+
+---
+
 ## [1.0.2] - 2026-09-29
 
 ### 🚀 架构重大升级 (Major Architectural Improvements)

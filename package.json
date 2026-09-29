@@ -1,6 +1,6 @@
 {
   "name": "omni-crop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "High performance cross-platform image cropper for WeChat Miniprogram, Taro, uni-app, React Native and Web",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
