@@ -4,6 +4,29 @@
 
 ---
 
+## [1.0.2] - 2026-09-29
+
+### 🚀 架构重大升级 (Major Architectural Improvements)
+- **🎯 模式 B 自由拉伸选区与 8 触控锚点体系**：
+  - 裁剪框正式支持 **8 个触控手柄**：4 个角锚点（双轴变形）+ 4 条边中点锚点（单轴变形）；
+  - **32px 隐式热区放大 (Touch Area Inflation)**：线条视觉上保持精细细腻，但通过伪元素将每个锚点的不可见触控热区扩展至 32px × 32px，彻底解决移动端手指难以精准点中的操作痛点；
+  - **WXS 60 FPS 选区驱动**：拖拽锚点过程中在视图层直接计算并调用 `box.setStyle({ width, height })`，全程 **0 次跨线程通信**，保持满帧 60 FPS 丝滑响应；
+  - **智能边界阻尼衰减与弹簧回弹 (Spring Physics)**：拉伸越界时自动计算衰减阻尼，松手后弹性平滑收敛回合法选区边界。
+- **🟣 真·圆形抗锯齿裁切与透明通道保护**：
+  - 当 `cropShape === 'round'` 时，Canvas 2D 导出引擎自动应用硬件级 `ctx.arc(...)` + `ctx.clip()` 执行圆形抗锯齿蒙版；
+  - 圆形头像导出时自动强制默认使用 `PNG` 格式，完整保留透明 Alpha 通道，绝无黑边或白色填充底色瑕疵。
+- **🛡️ 导出并发互斥锁 (Mutex Lock)**：
+  - 在导出流水线注入驱动级并发锁 `_isExporting` 与组件级防重逻辑，防止用户快速连击造成并发重入与显存雪崩崩溃。
+- **📦 现代双格式构建流水线 (Dual ESM/CJS Output)**：
+  - 重构 `scripts/build.js`，实现双格式无缝产出：**ESM (`.mjs`)** + **CommonJS (`.js`)** + **TypeScript 类型定义 (`.d.ts`)**；
+  - 全面支持 Vite、Webpack 5、Rollup、Taro 3、uni-app、Next.js 的原生 ESM 解析与按需 Tree-shaking；
+  - 严格定义 `package.json` 的 `exports` 字段映射，对齐现代 npm 规范。
+- **🧹 源码纯洁化与测试加固**：
+  - 彻底清理误留在 `src/core/` 目录下的 `.js`、`.d.ts`、`.map` 历史编译产物；
+  - 新增 Exporter Pipeline 测试套件，全量 18 项单元测试通过。
+
+---
+
 ## [1.0.1] - 2026-09-24
 
 ### 🎨 视觉与文档 (Documentation & Visuals)

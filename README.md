@@ -463,8 +463,8 @@ export function WebCropDemo() {
 | :--- | :--- | :--- | :--- |
 | `image` | `string` | `""` | 待裁剪图片地址（支持本地文件临时路径、HTTPS 远程 CDN 地址、Base64） |
 | `aspect` | `number \| "free"` | `4 / 3` | 裁剪区域宽高比，例如 `1` 为正方形，`16 / 9` 为宽屏，`"free"` 为自由比例 |
-| `cropShape` | `"rect" \| "round"` | `"rect"` | 裁剪框形状：`rect` 矩形，`round` 圆形（圆形模式自动提供圆形遮罩与圆角裁剪导出） |
-| `cropMode` | `"transform-media" \| "resize-box"` | `"transform-media"` | 交互模式：`transform-media` 经典移动图片；`resize-box` 自由拖动裁剪框各边选区 |
+| `cropShape` | `"rect" \| "round"` | `"rect"` | 裁剪框形状：`rect` 矩形，`round` 圆形（圆形模式自动应用真抗锯齿 `ctx.arc/clip`，且默认输出 PNG 保留透明背景） |
+| `cropMode` | `"transform-media" \| "resize-box"` | `"transform-media"` | 交互模式：`transform-media` 经典移动底图；`resize-box` 8 触控锚点自由拉伸选区 + 32px 隐式热区 + WXS 阻尼物理动效 |
 | `showGrid` | `boolean` | `true` | 是否在手势交互中展示九宫格辅助构图参考线 |
 | `restrictPosition` | `boolean` | `true` | 边界吸附限制策略：为 `true` 时严格禁止选区露出黑边背景 |
 
@@ -477,6 +477,8 @@ export function WebCropDemo() {
 | `bindcropcomplete` | `{ croppedAreaPixels, croppedAreaPercentages }` | 手势离开、缩放结束或尺寸初始化完成时回调精准几何坐标 |
 | `bindzoomchange` | `{ zoom: number }` | 双指缩放或滑块调整使得缩放比例产生变化时实时回传 |
 | `bindcropchange` | `{ x: number, y: number }` | 图片在裁剪容器内的偏移量发生变化时触发 |
+| `bindcropsizechange` | `{ width: number, height: number }` | 模式 B 拖动 8 锚点调整选区大小完成后触发 |
+| `binderror` | `{ errMsg: string, ... }` | 图片加载失败或运行异常时触发 |
 
 ---
 
@@ -486,6 +488,8 @@ export function WebCropDemo() {
 
 | 方法名 | 入参 | 返回值 | 功能说明 |
 | :--- | :--- | :--- | :--- |
+| `setCropMode(mode)` | `'transform-media' \| 'resize-box'` | `void` | 动态切换交互模式（底图变换 vs 8 锚点选区拉伸） |
+| `setAspect(aspect)` | `number \| 'free'` | `void` | 动态切换裁剪比例并自适应重新计算选区框 |
 | `rotate(stepAngle)` | `stepAngle?: number` (默认 90) | `void` | 顺时针步进旋转图片 |
 | `zoomIn(step)` | `step?: number` (默认 0.25) | `void` | 以当前中心点放大视图 |
 | `zoomOut(step)` | `step?: number` (默认 0.25) | `void` | 以当前中心点缩小视图（受限于防露白最小倍率） |
@@ -493,7 +497,7 @@ export function WebCropDemo() {
 | `flipHorizontal()` | - | `void` | 水平镜像翻转 |
 | `flipVertical()` | - | `void` | 垂直镜像翻转 |
 | `reset()` | - | `void` | 重置所有旋转、翻转、缩放与位移状态至居中初始态 |
-| `exportCroppedImage(options)` | `options?: ExportOptions` | `Promise<CropResult>` | 核心方法：使用 Canvas 2D 离屏导出裁剪后的高清图片 |
+| `exportCroppedImage(options)` | `options?: ExportOptions` | `Promise<CropResult>` | 核心方法：使用 Canvas 2D 离屏导出裁剪后的高清图片（带并发防重锁与防 OOM 自适应） |
 
 ---
 

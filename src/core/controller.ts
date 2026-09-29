@@ -8,6 +8,7 @@ import {
   CropShape,
   ControllerOptions,
   CropState,
+  ResizeHandle,
 } from './types';
 import {
   getInitialCropSize,
@@ -18,6 +19,7 @@ import {
   getCropBoundaries,
   clampPosition,
   getMinZoom,
+  resizeCropBox,
 } from './boundary/restrict';
 
 export type ChangeCallback = (state: CropState) => void;
@@ -140,6 +142,65 @@ export class OmniCropController {
     this.state.rotation = this.options.initialRotation;
     this.state.flip = { ...this.options.initialFlip };
     this.clampAndNotify();
+    this.notifyComplete();
+  }
+
+  public setCropMode(cropMode: CropMode): void {
+    this.options.cropMode = cropMode;
+    this.clampAndNotify();
+    this.notifyComplete();
+  }
+
+  public setAspect(aspect: number | 'free'): void {
+    this.options.aspect = aspect;
+    if (this.containerSize.width > 0 && this.containerSize.height > 0) {
+      this.state.cropSize = getInitialCropSize(
+        this.containerSize.width,
+        this.containerSize.height,
+        aspect
+      );
+      this.clampAndNotify();
+      this.notifyComplete();
+    }
+  }
+
+  public resizeCropBox(handle: ResizeHandle, delta: Point): void {
+    const result = resizeCropBox({
+      handle,
+      delta,
+      currentCropSize: this.state.cropSize,
+      currentCrop: this.state.crop,
+      containerSize: this.containerSize,
+      aspect: this.options.aspect,
+    });
+    this.state.cropSize = result.cropSize;
+    if (result.crop) {
+      this.state.crop = result.crop;
+    }
+    this.clampAndNotify();
+    this.notifyComplete();
+  }
+
+  public setCropSize(size: Size): void {
+    this.state.cropSize = {
+      width: Math.max(10, Math.round(size.width)),
+      height: Math.max(10, Math.round(size.height)),
+    };
+    this.clampAndNotify();
+    this.notifyComplete();
+  }
+
+  public getContainerSize(): Size {
+    return { ...this.containerSize };
+  }
+
+  public zoomIn(step = 0.25): void {
+    this.setZoom(this.state.zoom + step);
+    this.notifyComplete();
+  }
+
+  public zoomOut(step = 0.25): void {
+    this.setZoom(this.state.zoom - step);
     this.notifyComplete();
   }
 

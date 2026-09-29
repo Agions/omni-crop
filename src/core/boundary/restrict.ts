@@ -1,4 +1,4 @@
-import { Point, Size, CropBoundaries } from '../types';
+import { Point, Size, CropBoundaries, ResizeHandle } from '../types';
 import { getRotatedSize } from '../matrix/affine';
 
 /**
@@ -78,4 +78,153 @@ export function applyDamping(offset: number, min: number, max: number, factor = 
     return max + Math.pow(offset - max, 0.85) * factor;
   }
   return offset;
+}
+
+export interface ResizeBoxOptions {
+  handle: ResizeHandle;
+  delta: Point;
+  currentCropSize: Size;
+  currentCrop?: Point;
+  containerSize: Size;
+  aspect?: number | 'free';
+  minSize?: Size;
+}
+
+export interface ResizeBoxResult {
+  cropSize: Size;
+  crop: Point;
+}
+
+/**
+ * Calculates resized crop box and center offset for Mode B 8-anchor handles
+ */
+export function resizeCropBox(options: ResizeBoxOptions): ResizeBoxResult {
+  const {
+    handle,
+    delta,
+    currentCropSize,
+    currentCrop = { x: 0, y: 0 },
+    containerSize,
+    aspect = 'free',
+    minSize = { width: 40, height: 40 },
+  } = options;
+
+  let newWidth = currentCropSize.width;
+  let newHeight = currentCropSize.height;
+  let newCropX = currentCrop.x;
+  let newCropY = currentCrop.y;
+
+  const dx = delta.x;
+  const dy = delta.y;
+
+  switch (handle) {
+    case 'right':
+      newWidth = currentCropSize.width + dx;
+      if (typeof aspect === 'number' && aspect > 0) {
+        newHeight = newWidth / aspect;
+      }
+      break;
+    case 'left':
+      newWidth = currentCropSize.width - dx;
+      if (typeof aspect === 'number' && aspect > 0) {
+        newHeight = newWidth / aspect;
+      }
+      newCropX = currentCrop.x + dx / 2;
+      break;
+    case 'bottom':
+      newHeight = currentCropSize.height + dy;
+      if (typeof aspect === 'number' && aspect > 0) {
+        newWidth = newHeight * aspect;
+      }
+      break;
+    case 'top':
+      newHeight = currentCropSize.height - dy;
+      if (typeof aspect === 'number' && aspect > 0) {
+        newWidth = newHeight * aspect;
+      }
+      newCropY = currentCrop.y + dy / 2;
+      break;
+    case 'bottom-right':
+      if (typeof aspect === 'number' && aspect > 0) {
+        const effectiveDelta = Math.abs(dx) > Math.abs(dy * aspect) ? dx : dy * aspect;
+        newWidth = currentCropSize.width + effectiveDelta;
+        newHeight = newWidth / aspect;
+      } else {
+        newWidth = currentCropSize.width + dx;
+        newHeight = currentCropSize.height + dy;
+      }
+      break;
+    case 'bottom-left':
+      if (typeof aspect === 'number' && aspect > 0) {
+        const effectiveDelta = Math.abs(dx) > Math.abs(dy * aspect) ? -dx : dy * aspect;
+        newWidth = currentCropSize.width + effectiveDelta;
+        newHeight = newWidth / aspect;
+        newCropX = currentCrop.x - effectiveDelta / 2;
+      } else {
+        newWidth = currentCropSize.width - dx;
+        newHeight = currentCropSize.height + dy;
+        newCropX = currentCrop.x + dx / 2;
+      }
+      break;
+    case 'top-right':
+      if (typeof aspect === 'number' && aspect > 0) {
+        const effectiveDelta = Math.abs(dx) > Math.abs(-dy * aspect) ? dx : -dy * aspect;
+        newWidth = currentCropSize.width + effectiveDelta;
+        newHeight = newWidth / aspect;
+        newCropY = currentCrop.y - (newHeight - currentCropSize.height) / 2;
+      } else {
+        newWidth = currentCropSize.width + dx;
+        newHeight = currentCropSize.height - dy;
+        newCropY = currentCrop.y + dy / 2;
+      }
+      break;
+    case 'top-left':
+      if (typeof aspect === 'number' && aspect > 0) {
+        const effectiveDelta = Math.abs(-dx) > Math.abs(-dy * aspect) ? -dx : -dy * aspect;
+        newWidth = currentCropSize.width + effectiveDelta;
+        newHeight = newWidth / aspect;
+        newCropX = currentCrop.x - effectiveDelta / 2;
+        newCropY = currentCrop.y - (newHeight - currentCropSize.height) / 2;
+      } else {
+        newWidth = currentCropSize.width - dx;
+        newHeight = currentCropSize.height - dy;
+        newCropX = currentCrop.x + dx / 2;
+        newCropY = currentCrop.y + dy / 2;
+      }
+      break;
+  }
+
+  const maxW = containerSize.width > 0 ? containerSize.width : 2000;
+  const maxH = containerSize.height > 0 ? containerSize.height : 2000;
+
+  newWidth = Math.max(minSize.width, Math.min(newWidth, maxW));
+  newHeight = Math.max(minSize.height, Math.min(newHeight, maxH));
+
+  if (typeof aspect === 'number' && aspect > 0) {
+    if (Math.abs(newWidth / newHeight - aspect) > 0.01) {
+      newHeight = newWidth / aspect;
+      if (newHeight > maxH) {
+        newHeight = maxH;
+        newWidth = newHeight * aspect;
+      }
+    }
+  }
+
+  return {
+    cropSize: {
+      width: Math.round(newWidth),
+      height: Math.round(newHeight),
+    },
+    crop: {
+      x: Math.round(newCropX),
+      y: Math.round(newCropY),
+    },
+  };
+}
+
+/**
+ * Calculates a spring animation step towards target value
+ */
+export function springStep(current: number, target: number, stiffness = 0.25): number {
+  return current + (target - current) * stiffness;
 }

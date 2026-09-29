@@ -51,6 +51,27 @@
 
   <!-- 底部操作控制面板 -->
   <view class="control-panel">
+    <!-- 交互模式选择 (底图变换 / 8 锚点选区拉伸) -->
+    <view class="control-group">
+      <view class="group-label">模式</view>
+      <view class="btn-group">
+        <view
+          class="pill-btn {{cropMode === 'transform-media' ? 'active' : ''}}"
+          data-mode="transform-media"
+          bindtap="onSelectMode"
+        >
+          底图变换
+        </view>
+        <view
+          class="pill-btn {{cropMode === 'resize-box' ? 'active' : ''}}"
+          data-mode="resize-box"
+          bindtap="onSelectMode"
+        >
+          选区拉伸 (8锚点)
+        </view>
+      </view>
+    </view>
+
     <!-- 比例选择 -->
     <view class="control-group">
       <view class="group-label">比例</view>

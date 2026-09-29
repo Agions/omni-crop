@@ -75,6 +75,41 @@
     .crop-mask-overlay {
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
     }
+    .crop-mask-overlay.is-round {
+      border-radius: 9999px;
+    }
+    .demo-handle {
+      position: absolute;
+      background: #3b82f6;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      z-index: 20;
+      pointer-events: auto;
+    }
+    .demo-handle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 32px;
+      height: 32px;
+      transform: translate(-50%, -50%);
+    }
+    .demo-corner {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+    .demo-edge-h {
+      width: 20px;
+      height: 6px;
+      border-radius: 3px;
+    }
+    .demo-edge-v {
+      width: 6px;
+      height: 20px;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body class="bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-200">
@@ -88,7 +123,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="font-bold text-base tracking-tight text-zinc-900 dark:text-white">OmniCrop</span>
-          <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-medium border border-blue-500/20">v1.0.0</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-medium border border-blue-500/20">v1.0.2</span>
         </div>
       </a>
       <span class="hidden md:inline-block text-zinc-400 dark:text-zinc-600">/</span>
@@ -304,12 +339,23 @@ pnpm add omni-crop</code></pre>
               <div id="demo-media-wrap" class="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <img id="demo-img" src="" alt="Cropper" class="max-w-none origin-center will-change-transform" draggable="false" />
               </div>
-              <div id="demo-crop-box" class="absolute pointer-events-none border-[1.5px] border-white/95 crop-mask-overlay transition-[width,height] duration-150 ease-out">
-                <div id="demo-grid" class="absolute inset-0">
+              <div id="demo-crop-box" class="absolute pointer-events-none border-[1.5px] border-white/95 crop-mask-overlay transition-[border-radius] duration-150">
+                <div id="demo-grid" class="absolute inset-0 pointer-events-none">
                   <div class="absolute w-full h-[1px] bg-white/30 top-1/3"></div>
                   <div class="absolute w-full h-[1px] bg-white/30 top-2/3"></div>
                   <div class="absolute h-full w-[1px] bg-white/30 left-1/3"></div>
                   <div class="absolute h-full w-[1px] bg-white/30 left-2/3"></div>
+                </div>
+                <!-- 8 Interactive Handles for Mode B -->
+                <div id="demo-handles-layer" class="hidden">
+                  <div class="demo-handle demo-corner -top-1.5 -left-1.5 cursor-nwse-resize" data-handle="top-left"></div>
+                  <div class="demo-handle demo-corner -top-1.5 -right-1.5 cursor-nesw-resize" data-handle="top-right"></div>
+                  <div class="demo-handle demo-corner -bottom-1.5 -left-1.5 cursor-nesw-resize" data-handle="bottom-left"></div>
+                  <div class="demo-handle demo-corner -bottom-1.5 -right-1.5 cursor-nwse-resize" data-handle="bottom-right"></div>
+                  <div class="demo-handle demo-edge-h -top-1 left-1/2 -translate-x-1/2 cursor-ns-resize" data-handle="top"></div>
+                  <div class="demo-handle demo-edge-h -bottom-1 left-1/2 -translate-x-1/2 cursor-ns-resize" data-handle="bottom"></div>
+                  <div class="demo-handle demo-edge-v top-1/2 -left-1 -translate-y-1/2 cursor-ew-resize" data-handle="left"></div>
+                  <div class="demo-handle demo-edge-v top-1/2 -right-1 -translate-y-1/2 cursor-ew-resize" data-handle="right"></div>
                 </div>
               </div>
             </div>
@@ -330,6 +376,23 @@ pnpm add omni-crop</code></pre>
 
           <!-- Studio Toolbar & Output -->
           <div class="lg:col-span-4 space-y-3.5 text-xs">
+            <!-- Mode Selector -->
+            <div class="space-y-1">
+              <span class="font-semibold text-zinc-700 dark:text-zinc-300">交互模式</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button id="btn-mode-a" onclick="demoSetMode('transform-media')" class="demo-mode-btn py-1.5 rounded-lg bg-blue-600 text-white font-medium">底图变换</button>
+                <button id="btn-mode-b" onclick="demoSetMode('resize-box')" class="demo-mode-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">选区拉伸 (8锚点)</button>
+              </div>
+            </div>
+
+            <!-- Shape Selector -->
+            <div class="space-y-1">
+              <span class="font-semibold text-zinc-700 dark:text-zinc-300">裁剪形状</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button id="btn-shape-rect" onclick="demoSetShape('rect')" class="demo-shape-btn py-1.5 rounded-lg bg-blue-600 text-white font-medium">矩形</button>
+                <button id="btn-shape-round" onclick="demoSetShape('round')" class="demo-shape-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">圆形头像</button>
+              </div>
+            </div>
             <div class="space-y-1">
               <span class="font-semibold text-zinc-700 dark:text-zinc-300">测试图片</span>
               <div class="grid grid-cols-2 gap-2">
@@ -420,6 +483,12 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-sans">图片 URL 地址、本地临时路径或 Base64</td>
               </tr>
               <tr>
+                <td class="p-3 font-bold text-blue-500">cropMode</td>
+                <td class="p-3">'transform-media' | 'resize-box'</td>
+                <td class="p-3">'transform-media'</td>
+                <td class="p-3 font-sans">交互模式：'transform-media' 移动缩放底图；'resize-box' 8触控锚点自由拉伸选区 + WXS 阻尼物理回弹</td>
+              </tr>
+              <tr>
                 <td class="p-3 font-bold text-blue-500">aspect</td>
                 <td class="p-3">number | 'free'</td>
                 <td class="p-3">4 / 3</td>
@@ -429,7 +498,7 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-bold text-blue-500">cropShape</td>
                 <td class="p-3">'rect' | 'round'</td>
                 <td class="p-3">'rect'</td>
-                <td class="p-3 font-sans">裁剪框形状（'rect' 矩形，'round' 圆形头像遮罩）</td>
+                <td class="p-3 font-sans">裁剪框形状（'rect' 矩形，'round' 圆形头像遮罩，自动保留 PNG 透明背景）</td>
               </tr>
               <tr>
                 <td class="p-3 font-bold text-blue-500">showGrid</td>
@@ -448,7 +517,53 @@ pnpm add omni-crop</code></pre>
         </div>
       </section>
 
-      <!-- Section 6: Ref Methods -->
+      <!-- Section 6: Events -->
+      <section id="events-api" class="space-y-4">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          📡 组件 Events 事件参考
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <thead class="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
+              <tr>
+                <th class="p-3">事件名</th>
+                <th class="p-3">回调参数 detail</th>
+                <th class="p-3">触发时机与说明</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950/60 text-zinc-700 dark:text-zinc-300 font-mono">
+              <tr>
+                <td class="p-3 font-bold text-amber-500">bindcropcomplete</td>
+                <td class="p-3">{ croppedAreaPixels, croppedAreaPercentages }</td>
+                <td class="p-3 font-sans">手势停止或尺寸/位置变更时触发，返回高精度真实像素坐标与百分比</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-amber-500">bindzoomchange</td>
+                <td class="p-3">{ zoom }</td>
+                <td class="p-3 font-sans">图片缩放倍率变化时触发（可与外部 Slider 滑块实时同步）</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-amber-500">bindcropchange</td>
+                <td class="p-3">{ x, y }</td>
+                <td class="p-3 font-sans">图片平移物理位移变动时触发</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-amber-500">bindcropsizechange</td>
+                <td class="p-3">{ width, height }</td>
+                <td class="p-3 font-sans">模式 B 拖动 8 锚点调整选区大小完成后触发</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-amber-500">binderror</td>
+                <td class="p-3">{ errMsg, ... }</td>
+                <td class="p-3 font-sans">底图资源下载或解码失败时触发</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 7: Ref Methods -->
       <section id="ref-api" class="space-y-4">
         <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
           🛠️ 组件 Ref 实例方法 (Imperative API)
@@ -465,6 +580,18 @@ pnpm add omni-crop</code></pre>
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950/60 text-zinc-700 dark:text-zinc-300 font-mono">
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">setCropMode(mode)</td>
+                <td class="p-3">'transform-media' | 'resize-box'</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">动态切换交互模式（底图变换 vs 8 锚点拉伸选区）</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">setAspect(aspect)</td>
+                <td class="p-3">number | 'free'</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">动态切换裁剪比例并自适应重算选区尺寸</td>
+              </tr>
               <tr>
                 <td class="p-3 font-bold text-emerald-500">rotate(stepAngle)</td>
                 <td class="p-3">number = 90</td>
@@ -511,7 +638,7 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-bold text-emerald-500">exportCroppedImage(opts)</td>
                 <td class="p-3">ExportOptions</td>
                 <td class="p-3">Promise&lt;CropResult&gt;</td>
-                <td class="p-3 font-sans">通过 Canvas 2D 离屏导出裁切图片路径</td>
+                <td class="p-3 font-sans">通过 Canvas 2D 离屏导出裁切图片路径（带并发防重锁与防 OOM 自适应）</td>
               </tr>
             </tbody>
           </table>
@@ -661,12 +788,19 @@ Page({
       flipH: 1,
       flipV: 1,
       aspect: 4 / 3,
+      cropMode: 'transform-media',
+      shape: 'rect',
       cropW: 0,
       cropH: 0,
       isDragging: false,
       startX: 0,
       startY: 0,
-      initialCrop: { x: 0, y: 0 }
+      initialCrop: { x: 0, y: 0 },
+      activeHandle: null,
+      handleStartX: 0,
+      handleStartY: 0,
+      boxStartW: 0,
+      boxStartH: 0,
     };
 
     function createSampleDataURL(text, bg1, bg2) {
@@ -701,8 +835,41 @@ Page({
     const demoCropper = document.getElementById('demo-cropper');
     const demoImg = document.getElementById('demo-img');
     const demoCropBox = document.getElementById('demo-crop-box');
+    const demoHandlesLayer = document.getElementById('demo-handles-layer');
     const demoSlider = document.getElementById('demo-slider');
     const demoInfo = document.getElementById('demo-info');
+
+    function demoSetMode(mode) {
+      demoState.cropMode = mode;
+      const btnA = document.getElementById('btn-mode-a');
+      const btnB = document.getElementById('btn-mode-b');
+      if (mode === 'resize-box') {
+        btnB.className = 'demo-mode-btn py-1.5 rounded-lg bg-blue-600 text-white font-medium';
+        btnA.className = 'demo-mode-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium';
+        demoHandlesLayer.classList.remove('hidden');
+      } else {
+        btnA.className = 'demo-mode-btn py-1.5 rounded-lg bg-blue-600 text-white font-medium';
+        btnB.className = 'demo-mode-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium';
+        demoHandlesLayer.classList.add('hidden');
+      }
+    }
+
+    function demoSetShape(shape) {
+      demoState.shape = shape;
+      const btnRect = document.getElementById('btn-shape-rect');
+      const btnRound = document.getElementById('btn-shape-round');
+      if (shape === 'round') {
+        btnRound.className = 'demo-shape-btn py-1.5 rounded-lg bg-blue-600 text-white font-medium';
+        btnRect.className = 'demo-shape-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium';
+        demoCropBox.classList.add('is-round');
+        // 圆形模式推荐 1:1
+        demoSetAspect(1, document.querySelector('.demo-aspect-btn'));
+      } else {
+        btnRect.className = 'demo-shape-btn py-1.5 rounded-lg bg-blue-600 text-white font-medium';
+        btnRound.className = 'demo-shape-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium';
+        demoCropBox.classList.remove('is-round');
+      }
+    }
 
     function demoUpdateBox() {
       const cw = demoCropper.clientWidth || 500;
@@ -720,10 +887,10 @@ Page({
         bw = mw; bh = bw / demoState.aspect;
       }
 
-      demoState.cropW = bw;
-      demoState.cropH = bh;
-      demoCropBox.style.width = bw + 'px';
-      demoCropBox.style.height = bh + 'px';
+      demoState.cropW = Math.round(bw);
+      demoState.cropH = Math.round(bh);
+      demoCropBox.style.width = demoState.cropW + 'px';
+      demoCropBox.style.height = demoState.cropH + 'px';
       demoRender();
     }
 
@@ -731,7 +898,7 @@ Page({
       const sx = demoState.zoom * demoState.flipH;
       const sy = demoState.zoom * demoState.flipV;
       demoImg.style.transform = `translate3d(${demoState.crop.x}px, ${demoState.crop.y}px, 0) rotate(${demoState.rotation}deg) scale(${sx}, ${sy})`;
-      demoInfo.textContent = `缩放: ${demoState.zoom.toFixed(2)}x · 旋转: ${demoState.rotation}°`;
+      demoInfo.textContent = `缩放: ${demoState.zoom.toFixed(2)}x · 旋转: ${demoState.rotation}° · 选区: ${demoState.cropW}×${demoState.cropH}`;
       demoSlider.value = demoState.zoom;
     }
 
@@ -782,13 +949,29 @@ Page({
         b.classList.remove('bg-blue-600', 'text-white');
         b.classList.add('bg-zinc-200', 'dark:bg-zinc-800');
       });
-      btn.classList.add('bg-blue-600', 'text-white');
-      btn.classList.remove('bg-zinc-200', 'dark:bg-zinc-800');
+      if (btn) {
+        btn.classList.add('bg-blue-600', 'text-white');
+        btn.classList.remove('bg-zinc-200', 'dark:bg-zinc-800');
+      }
       demoUpdateBox();
     }
 
-    // Dragging
+    // 8 锚点拖拽事件监听
+    document.querySelectorAll('.demo-handle').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        demoState.activeHandle = el.dataset.handle;
+        demoState.handleStartX = e.clientX;
+        demoState.handleStartY = e.clientY;
+        demoState.boxStartW = demoState.cropW;
+        demoState.boxStartH = demoState.cropH;
+      });
+    });
+
+    // 拖拽手势
     demoCropper.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('demo-handle')) return;
       e.preventDefault();
       demoState.isDragging = true;
       demoState.startX = e.clientX;
@@ -797,6 +980,80 @@ Page({
     });
 
     window.addEventListener('mousemove', (e) => {
+      // 1. 如果正在拖拽 8 锚点
+      if (demoState.activeHandle) {
+        const dx = e.clientX - demoState.handleStartX;
+        const dy = e.clientY - demoState.handleStartY;
+        const h = demoState.activeHandle;
+        const isFixedAspect = typeof demoState.aspect === 'number' && demoState.aspect > 0;
+
+        let newW = demoState.boxStartW;
+        let newH = demoState.boxStartH;
+
+        if (h === 'right') {
+          newW = demoState.boxStartW + dx;
+          if (isFixedAspect) newH = newW / demoState.aspect;
+        } else if (h === 'left') {
+          newW = demoState.boxStartW - dx;
+          if (isFixedAspect) newH = newW / demoState.aspect;
+        } else if (h === 'bottom') {
+          newH = demoState.boxStartH + dy;
+          if (isFixedAspect) newW = newH * demoState.aspect;
+        } else if (h === 'top') {
+          newH = demoState.boxStartH - dy;
+          if (isFixedAspect) newW = newH * demoState.aspect;
+        } else if (h === 'bottom-right') {
+          if (isFixedAspect) {
+            const eff = Math.abs(dx) > Math.abs(dy * demoState.aspect) ? dx : dy * demoState.aspect;
+            newW = demoState.boxStartW + eff;
+            newH = newW / demoState.aspect;
+          } else {
+            newW = demoState.boxStartW + dx;
+            newH = demoState.boxStartH + dy;
+          }
+        } else if (h === 'bottom-left') {
+          if (isFixedAspect) {
+            const eff = Math.abs(dx) > Math.abs(dy * demoState.aspect) ? -dx : dy * demoState.aspect;
+            newW = demoState.boxStartW + eff;
+            newH = newW / demoState.aspect;
+          } else {
+            newW = demoState.boxStartW - dx;
+            newH = demoState.boxStartH + dy;
+          }
+        } else if (h === 'top-right') {
+          if (isFixedAspect) {
+            const eff = Math.abs(dx) > Math.abs(-dy * demoState.aspect) ? dx : -dy * demoState.aspect;
+            newW = demoState.boxStartW + eff;
+            newH = newW / demoState.aspect;
+          } else {
+            newW = demoState.boxStartW + dx;
+            newH = demoState.boxStartH - dy;
+          }
+        } else if (h === 'top-left') {
+          if (isFixedAspect) {
+            const eff = Math.abs(-dx) > Math.abs(-dy * demoState.aspect) ? -dx : -dy * demoState.aspect;
+            newW = demoState.boxStartW + eff;
+            newH = newW / demoState.aspect;
+          } else {
+            newW = demoState.boxStartW - dx;
+            newH = demoState.boxStartH - dy;
+          }
+        }
+
+        const cw = demoCropper.clientWidth || 500;
+        const ch = demoCropper.clientHeight || 360;
+        newW = Math.min(Math.max(newW, 40), cw - 20);
+        newH = Math.min(Math.max(newH, 40), ch - 20);
+
+        demoState.cropW = Math.round(newW);
+        demoState.cropH = Math.round(newH);
+        demoCropBox.style.width = demoState.cropW + 'px';
+        demoCropBox.style.height = demoState.cropH + 'px';
+        demoRender();
+        return;
+      }
+
+      // 2. 底图平移
       if (!demoState.isDragging) return;
       demoState.crop.x = demoState.initialCrop.x + (e.clientX - demoState.startX);
       demoState.crop.y = demoState.initialCrop.y + (e.clientY - demoState.startY);
@@ -805,6 +1062,7 @@ Page({
 
     window.addEventListener('mouseup', () => {
       demoState.isDragging = false;
+      demoState.activeHandle = null;
     });
 
     // Mouse wheel zoom
@@ -815,7 +1073,7 @@ Page({
       demoRender();
     }, { passive: false });
 
-    // Export execution
+    // Export execution (Canvas 2D with circular clip support)
     function demoExport() {
       const c = document.createElement('canvas');
       const ctx = c.getContext('2d');
@@ -824,6 +1082,16 @@ Page({
       c.width = w; c.height = h;
 
       ctx.save();
+
+      // 圆形头像真抗锯齿裁剪
+      if (demoState.shape === 'round') {
+        const radius = Math.min(w, h) / 2;
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, radius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+      }
+
       ctx.translate(w / 2, h / 2);
       if (demoState.rotation !== 0) ctx.rotate((demoState.rotation * Math.PI) / 180);
       ctx.scale(demoState.flipH, demoState.flipV);
@@ -838,7 +1106,7 @@ Page({
 
       const url = c.toDataURL('image/png');
       document.getElementById('demo-export-img').src = url;
-      document.getElementById('demo-export-size').textContent = `${w} × ${h} px`;
+      document.getElementById('demo-export-size').textContent = `${w} × ${h} px (${demoState.shape === 'round' ? '圆形透明' : '矩形'})`;
     }
 
     // Init

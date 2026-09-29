@@ -56,12 +56,20 @@ class WechatCanvas2DDriver {
     }
     async render(canvas, params) {
         const ctx = canvas.getContext('2d');
-        const { imageSource, pixelCrop, rotation, flip, outputWidth, outputHeight } = params;
+        const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight } = params;
         return new Promise((resolve, reject) => {
             const img = canvas.createImage();
             img.onload = () => {
                 ctx.save();
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Circular clipping when cropShape === 'round'
+                if (cropShape === 'round') {
+                    const radius = Math.min(outputWidth, outputHeight) / 2;
+                    ctx.beginPath();
+                    ctx.arc(outputWidth / 2, outputHeight / 2, radius, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+                }
                 // Translate to center
                 ctx.translate(outputWidth / 2, outputHeight / 2);
                 // Apply rotation

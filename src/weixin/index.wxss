@@ -30,9 +30,10 @@
 .omni-crop-overlay {
   position: absolute;
   box-sizing: border-box;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
   pointer-events: none;
+  will-change: width, height, transform;
 }
 
 .omni-crop-overlay.is-round {
@@ -79,6 +80,16 @@
   border-color: #ffffff;
   border-style: solid;
   pointer-events: auto;
+  z-index: 10;
+}
+
+/* 32px invisible hit area for corners */
+.omni-crop-corner::after {
+  content: '';
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  pointer-events: auto;
 }
 
 .corner-tl {
@@ -86,11 +97,19 @@
   left: -2px;
   border-width: 3px 0 0 3px;
 }
+.corner-tl::after {
+  top: -10px;
+  left: -10px;
+}
 
 .corner-tr {
   top: -2px;
   right: -2px;
   border-width: 3px 3px 0 0;
+}
+.corner-tr::after {
+  top: -10px;
+  right: -10px;
 }
 
 .corner-bl {
@@ -98,9 +117,92 @@
   left: -2px;
   border-width: 0 0 3px 3px;
 }
+.corner-bl::after {
+  bottom: -10px;
+  left: -10px;
+}
 
 .corner-br {
   bottom: -2px;
   right: -2px;
   border-width: 0 3px 3px 0;
+}
+.corner-br::after {
+  bottom: -10px;
+  right: -10px;
+}
+
+/* Mode B Edge handles (pill bars) */
+.omni-crop-edge {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.95);
+  pointer-events: auto;
+  z-index: 9;
+}
+
+/* 32px invisible hit area for edges */
+.omni-crop-edge::after {
+  content: '';
+  position: absolute;
+  pointer-events: auto;
+}
+
+.edge-t {
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+}
+.edge-t::after {
+  top: -14px;
+  left: -10px;
+  width: 44px;
+  height: 32px;
+}
+
+.edge-b {
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+}
+.edge-b::after {
+  bottom: -14px;
+  left: -10px;
+  width: 44px;
+  height: 32px;
+}
+
+.edge-l {
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  border-radius: 2px;
+}
+.edge-l::after {
+  left: -14px;
+  top: -10px;
+  width: 32px;
+  height: 44px;
+}
+
+.edge-r {
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  border-radius: 2px;
+}
+.edge-r::after {
+  right: -14px;
+  top: -10px;
+  width: 32px;
+  height: 44px;
 }

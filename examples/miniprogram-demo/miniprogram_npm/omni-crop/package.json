@@ -1,14 +1,15 @@
 {
   "name": "omni-crop",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "High performance cross-platform image cropper for WeChat Miniprogram, Taro, uni-app, React Native and Web",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "miniprogram": "dist",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
@@ -20,31 +21,37 @@
     "./weixin/*": "./dist/weixin/*",
     "./taro": {
       "types": "./dist/taro/index.d.ts",
+      "import": "./dist/taro/index.mjs",
       "require": "./dist/taro/index.js",
       "default": "./dist/taro/index.js"
     },
     "./uni-app": {
       "types": "./dist/uni-app/index.d.ts",
+      "import": "./dist/uni-app/index.mjs",
       "require": "./dist/uni-app/index.js",
       "default": "./dist/uni-app/index.js"
     },
     "./react-native": {
       "types": "./dist/react-native/index.d.ts",
+      "import": "./dist/react-native/index.mjs",
       "require": "./dist/react-native/index.js",
       "default": "./dist/react-native/index.js"
     },
     "./react": {
       "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.mjs",
       "require": "./dist/react/index.js",
       "default": "./dist/react/index.js"
     },
     "./core": {
       "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.mjs",
       "require": "./dist/core/index.js",
       "default": "./dist/core/index.js"
     },
     "./exporter": {
       "types": "./dist/exporter/index.d.ts",
+      "import": "./dist/exporter/index.mjs",
       "require": "./dist/exporter/index.js",
       "default": "./dist/exporter/index.js"
     },
@@ -56,7 +63,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "node --test tests/core/matrix.test.cjs tests/core/controller.test.cjs tests/exporter/exif.test.cjs",
+    "test": "node --test tests/core/matrix.test.cjs tests/core/controller.test.cjs tests/exporter/exif.test.cjs tests/exporter/pipeline.test.cjs",
     "clean": "rm -rf dist weixin"
   },
   "keywords": [

@@ -56,7 +56,17 @@ Page({
     });
   },
 
-  // 3. 切换裁剪比例
+  // 3. 切换交互模式 (底图变换 / 选区拉伸)
+  onSelectMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({ cropMode: mode });
+    const cropper = this.getCropper();
+    if (cropper && cropper.setCropMode) {
+      cropper.setCropMode(mode);
+    }
+  },
+
+  // 4. 切换裁剪比例
   onSelectAspect(e) {
     const index = Number(e.currentTarget.dataset.index);
     this.setData({

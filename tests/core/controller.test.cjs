@@ -65,4 +65,19 @@ describe('OmniCropController State Machine', () => {
     assert.ok(style.includes('rotate(45deg)'));
     assert.ok(style.includes('scale(1.5, 1.5)'));
   });
+
+  it('supports Mode B resizeCropBox and mode switching', () => {
+    const controller = new OmniCropController({ aspect: 'free' });
+    controller.initDimensions(
+      { width: 400, height: 400 },
+      { width: 800, height: 800 }
+    );
+
+    const initialSize = controller.getState().cropSize;
+    controller.setCropMode('resize-box');
+    controller.resizeCropBox('right', { x: 50, y: 0 });
+
+    const newSize = controller.getState().cropSize;
+    assert.strictEqual(newSize.width, initialSize.width + 50);
+  });
 });

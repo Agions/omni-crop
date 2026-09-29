@@ -88,6 +88,54 @@ class OmniCropController {
         this.clampAndNotify();
         this.notifyComplete();
     }
+    setCropMode(cropMode) {
+        this.options.cropMode = cropMode;
+        this.clampAndNotify();
+        this.notifyComplete();
+    }
+    setAspect(aspect) {
+        this.options.aspect = aspect;
+        if (this.containerSize.width > 0 && this.containerSize.height > 0) {
+            this.state.cropSize = (0, affine_1.getInitialCropSize)(this.containerSize.width, this.containerSize.height, aspect);
+            this.clampAndNotify();
+            this.notifyComplete();
+        }
+    }
+    resizeCropBox(handle, delta) {
+        const result = (0, restrict_1.resizeCropBox)({
+            handle,
+            delta,
+            currentCropSize: this.state.cropSize,
+            currentCrop: this.state.crop,
+            containerSize: this.containerSize,
+            aspect: this.options.aspect,
+        });
+        this.state.cropSize = result.cropSize;
+        if (result.crop) {
+            this.state.crop = result.crop;
+        }
+        this.clampAndNotify();
+        this.notifyComplete();
+    }
+    setCropSize(size) {
+        this.state.cropSize = {
+            width: Math.max(10, Math.round(size.width)),
+            height: Math.max(10, Math.round(size.height)),
+        };
+        this.clampAndNotify();
+        this.notifyComplete();
+    }
+    getContainerSize() {
+        return { ...this.containerSize };
+    }
+    zoomIn(step = 0.25) {
+        this.setZoom(this.state.zoom + step);
+        this.notifyComplete();
+    }
+    zoomOut(step = 0.25) {
+        this.setZoom(this.state.zoom - step);
+        this.notifyComplete();
+    }
     getState() {
         return { ...this.state };
     }

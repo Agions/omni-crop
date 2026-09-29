@@ -23,6 +23,7 @@
 
   <!-- Mask Overlay and Crop Window -->
   <view
+    id="omni-crop-overlay-box"
     class="omni-crop-overlay {{cropShape === 'round' ? 'is-round' : ''}}"
     style="width: {{cropSize.width}}px; height: {{cropSize.height}}px;"
   >
@@ -34,12 +35,18 @@
       <view class="omni-crop-grid-line line-vertical line-v-2"></view>
     </block>
 
-    <!-- Corner handles for Mode B (free box resizing) -->
+    <!-- 8 Handles for Mode B (free box resizing) -->
     <block wx:if="{{cropMode === 'resize-box'}}">
-      <view class="omni-crop-corner corner-tl"></view>
-      <view class="omni-crop-corner corner-tr"></view>
-      <view class="omni-crop-corner corner-bl"></view>
-      <view class="omni-crop-corner corner-br"></view>
+      <!-- 4 Corner Handles -->
+      <view class="omni-crop-corner corner-tl" data-handle="top-left"></view>
+      <view class="omni-crop-corner corner-tr" data-handle="top-right"></view>
+      <view class="omni-crop-corner corner-bl" data-handle="bottom-left"></view>
+      <view class="omni-crop-corner corner-br" data-handle="bottom-right"></view>
+      <!-- 4 Edge Handles -->
+      <view class="omni-crop-edge edge-t" data-handle="top"></view>
+      <view class="omni-crop-edge edge-b" data-handle="bottom"></view>
+      <view class="omni-crop-edge edge-l" data-handle="left"></view>
+      <view class="omni-crop-edge edge-r" data-handle="right"></view>
     </block>
   </view>
 </view>

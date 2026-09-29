@@ -30,9 +30,17 @@ class WebCanvasDriver {
         const ctx = canvas.getContext('2d');
         if (!ctx)
             throw new Error('Failed to get 2d context on canvas');
-        const { imageSource, pixelCrop, rotation, flip, outputWidth, outputHeight } = params;
+        const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight } = params;
         ctx.save();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Circular clipping when cropShape === 'round'
+        if (cropShape === 'round') {
+            const radius = Math.min(outputWidth, outputHeight) / 2;
+            ctx.beginPath();
+            ctx.arc(outputWidth / 2, outputHeight / 2, radius, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+        }
         ctx.translate(outputWidth / 2, outputHeight / 2);
         if (rotation !== 0) {
             ctx.rotate((rotation * Math.PI) / 180);

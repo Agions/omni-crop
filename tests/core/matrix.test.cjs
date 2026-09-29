@@ -7,6 +7,8 @@ const {
   computeCropArea,
   getCropBoundaries,
   clampPosition,
+  resizeCropBox,
+  springStep,
 } = require('../../dist/core/index.js');
 
 describe('Matrix & Geometry Calculations', () => {
@@ -67,5 +69,46 @@ describe('Matrix & Geometry Calculations', () => {
     const clamped = clampPosition({ x: 100, y: -80 }, bounds);
     assert.strictEqual(clamped.x, 50);
     assert.strictEqual(clamped.y, -50);
+  });
+
+  it('resizeCropBox right handle in free aspect expands width', () => {
+    const res = resizeCropBox({
+      handle: 'right',
+      delta: { x: 30, y: 0 },
+      currentCropSize: { width: 100, height: 100 },
+      containerSize: { width: 400, height: 400 },
+      aspect: 'free',
+    });
+    assert.strictEqual(res.cropSize.width, 130);
+    assert.strictEqual(res.cropSize.height, 100);
+  });
+
+  it('resizeCropBox bottom-right handle preserves fixed aspect ratio', () => {
+    const res = resizeCropBox({
+      handle: 'bottom-right',
+      delta: { x: 40, y: 0 },
+      currentCropSize: { width: 200, height: 100 },
+      containerSize: { width: 500, height: 500 },
+      aspect: 2,
+    });
+    assert.strictEqual(res.cropSize.width, 240);
+    assert.strictEqual(res.cropSize.height, 120);
+  });
+
+  it('resizeCropBox respects minSize bounds', () => {
+    const res = resizeCropBox({
+      handle: 'left',
+      delta: { x: 100, y: 0 },
+      currentCropSize: { width: 50, height: 50 },
+      containerSize: { width: 400, height: 400 },
+      aspect: 'free',
+      minSize: { width: 40, height: 40 },
+    });
+    assert.strictEqual(res.cropSize.width, 40);
+  });
+
+  it('springStep moves smoothly towards target', () => {
+    const next = springStep(100, 200, 0.2);
+    assert.strictEqual(next, 120);
   });
 });

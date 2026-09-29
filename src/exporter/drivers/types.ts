@@ -1,4 +1,4 @@
-import { AreaPixels, Flip } from '../../core';
+import { AreaPixels, Flip, CropShape } from '../../core';
 
 export type ImageOutputFormat = 'jpg' | 'png' | 'webp';
 export type ImageOutputType = 'tempFilePath' | 'base64' | 'blob';
@@ -9,6 +9,7 @@ export interface ExportOptions {
   type?: ImageOutputType;
   maxResolution?: number;
   dpr?: number;
+  cropShape?: CropShape;
 }
 
 export interface CropResult {
@@ -24,6 +25,7 @@ export interface RenderParams {
   pixelCrop: AreaPixels;
   rotation: number;
   flip: Flip;
+  cropShape?: CropShape;
   outputWidth: number;
   outputHeight: number;
 }

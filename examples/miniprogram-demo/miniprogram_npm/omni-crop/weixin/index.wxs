@@ -1,5 +1,5 @@
 var state = {
-  // 当前变换状态
+  // 当前变换状态 (图片)
   currentX: 0,
   currentY: 0,
   scale: 1,
@@ -7,9 +7,26 @@ var state = {
   flipH: 1,
   flipV: 1,
 
-  // 单指拖拽跟踪
+  // 裁剪框状态与尺寸
+  cropMode: 'transform-media',
+  cropW: 240,
+  cropH: 180,
+  containerW: 375,
+  containerH: 375,
+  aspect: 4 / 3,
+
+  // 单指拖拽跟踪 (图片)
   startX: 0,
   startY: 0,
+
+  // 模式 B 选区 8 锚点调整跟踪
+  activeHandle: null,
+  handleStartX: 0,
+  handleStartY: 0,
+  boxStartW: 240,
+  boxStartH: 180,
+  boxStartX: 0,
+  boxStartY: 0,
 
   // 双指捏合缩放跟踪
   isPinching: false,
@@ -25,6 +42,7 @@ var state = {
   // 缩放边界
   minZoom: 0.2,
   maxZoom: 8.0,
+  minBoxSize: 40
 };
 
 function getDistance(p1, p2) {
@@ -60,6 +78,16 @@ function updateTransform(ownerInstance) {
   });
 }
 
+function updateCropBoxStyle(ownerInstance) {
+  var box = ownerInstance.selectComponent('#omni-crop-overlay-box');
+  if (!box) return;
+
+  box.setStyle({
+    width: state.cropW + 'px',
+    height: state.cropH + 'px'
+  });
+}
+
 function initPinch(touches) {
   state.isPinching = true;
   state.startDistance = getDistance(touches[0], touches[1]);
@@ -76,6 +104,21 @@ function onTouchStart(e, ownerInstance) {
   var touches = e.touches;
   if (!touches || touches.length === 0) return;
 
+  // 检查是否点中了 8 个选区调节锚点 (Mode B)
+  var handle = e.target && e.target.dataset ? e.target.dataset.handle : null;
+  if (handle) {
+    state.activeHandle = handle;
+    state.handleStartX = touches[0].clientX;
+    state.handleStartY = touches[0].clientY;
+    state.boxStartW = state.cropW;
+    state.boxStartH = state.cropH;
+    state.boxStartX = state.currentX;
+    state.boxStartY = state.currentY;
+    return;
+  }
+
+  state.activeHandle = null;
+
   if (touches.length === 1) {
     state.isPinching = false;
     state.startX = touches[0].clientX - state.currentX;
@@ -89,9 +132,85 @@ function onTouchMove(e, ownerInstance) {
   var touches = e.touches;
   if (!touches || touches.length === 0) return;
 
+  // 1. 如果正在拖拽选区调节锚点 (Mode B)
+  if (state.activeHandle) {
+    var dx = touches[0].clientX - state.handleStartX;
+    var dy = touches[0].clientY - state.handleStartY;
+    var h = state.activeHandle;
+
+    var newW = state.boxStartW;
+    var newH = state.boxStartH;
+    var isFixedAspect = typeof state.aspect === 'number' && state.aspect > 0;
+
+    if (h === 'right') {
+      newW = state.boxStartW + dx;
+      if (isFixedAspect) newH = newW / state.aspect;
+    } else if (h === 'left') {
+      newW = state.boxStartW - dx;
+      if (isFixedAspect) newH = newW / state.aspect;
+    } else if (h === 'bottom') {
+      newH = state.boxStartH + dy;
+      if (isFixedAspect) newW = newH * state.aspect;
+    } else if (h === 'top') {
+      newH = state.boxStartH - dy;
+      if (isFixedAspect) newW = newH * state.aspect;
+    } else if (h === 'bottom-right') {
+      if (isFixedAspect) {
+        var effDelta = Math.abs(dx) > Math.abs(dy * state.aspect) ? dx : dy * state.aspect;
+        newW = state.boxStartW + effDelta;
+        newH = newW / state.aspect;
+      } else {
+        newW = state.boxStartW + dx;
+        newH = state.boxStartH + dy;
+      }
+    } else if (h === 'bottom-left') {
+      if (isFixedAspect) {
+        var effDelta = Math.abs(dx) > Math.abs(dy * state.aspect) ? -dx : dy * state.aspect;
+        newW = state.boxStartW + effDelta;
+        newH = newW / state.aspect;
+      } else {
+        newW = state.boxStartW - dx;
+        newH = state.boxStartH + dy;
+      }
+    } else if (h === 'top-right') {
+      if (isFixedAspect) {
+        var effDelta = Math.abs(dx) > Math.abs(-dy * state.aspect) ? dx : -dy * state.aspect;
+        newW = state.boxStartW + effDelta;
+        newH = newW / state.aspect;
+      } else {
+        newW = state.boxStartW + dx;
+        newH = state.boxStartH - dy;
+      }
+    } else if (h === 'top-left') {
+      if (isFixedAspect) {
+        var effDelta = Math.abs(-dx) > Math.abs(-dy * state.aspect) ? -dx : -dy * state.aspect;
+        newW = state.boxStartW + effDelta;
+        newH = newW / state.aspect;
+      } else {
+        newW = state.boxStartW - dx;
+        newH = state.boxStartH - dy;
+      }
+    }
+
+    // 边界与阻尼限制
+    var maxW = state.containerW > 0 ? state.containerW : 600;
+    var maxH = state.containerH > 0 ? state.containerH : 600;
+
+    // 弹性阻尼：超出边界时衰减位移
+    if (newW > maxW) newW = maxW + (newW - maxW) * 0.3;
+    if (newH > maxH) newH = maxH + (newH - maxH) * 0.3;
+    if (newW < state.minBoxSize) newW = state.minBoxSize - (state.minBoxSize - newW) * 0.3;
+    if (newH < state.minBoxSize) newH = state.minBoxSize - (state.minBoxSize - newH) * 0.3;
+
+    state.cropW = Math.round(newW);
+    state.cropH = Math.round(newH);
+    updateCropBoxStyle(ownerInstance);
+    return;
+  }
+
+  // 2. 普通单指/双指手势 (图片平移与缩放)
   if (touches.length === 1) {
     if (state.isPinching) {
-      // 从双指切回单指
       state.isPinching = false;
       state.startX = touches[0].clientX - state.currentX;
       state.startY = touches[0].clientY - state.currentY;
@@ -102,39 +221,54 @@ function onTouchMove(e, ownerInstance) {
     state.currentY = touches[0].clientY - state.startY;
     updateTransform(ownerInstance);
   } else if (touches.length >= 2) {
-    // 双指捏合手势
+    // 双指捏合缩放
     if (!state.isPinching || state.startDistance <= 0) {
       initPinch(touches);
       return;
     }
 
-    // 1. 双指距离计算缩放比例
     var curDist = getDistance(touches[0], touches[1]);
     if (curDist > 0 && state.startDistance > 0) {
       var factor = curDist / state.startDistance;
       var targetScale = state.startScale * factor;
-      // 限制在有效缩放区间内
       state.scale = Math.min(Math.max(targetScale, state.minZoom), state.maxZoom);
     }
 
-    // 2. 双指中点跟随，实现围绕手势中心缩放与平移
     var curMid = getMidpoint(touches[0], touches[1]);
     state.currentX = curMid.x - state.startMidX;
     state.currentY = curMid.y - state.startMidY;
 
-    // 3. 实时更新渲染树 (60fps 零跨桥通信)
     updateTransform(ownerInstance);
   }
 }
 
 function onTouchEnd(e, ownerInstance) {
   var touches = e.touches;
+
+  // 1. 如果刚结束的是选区 8 锚点调整
+  if (state.activeHandle) {
+    state.activeHandle = null;
+
+    // 回弹安全限制（收敛回合法尺寸）
+    var maxW = state.containerW > 0 ? state.containerW : 600;
+    var maxH = state.containerH > 0 ? state.containerH : 600;
+    state.cropW = Math.min(Math.max(state.cropW, state.minBoxSize), maxW);
+    state.cropH = Math.min(Math.max(state.cropH, state.minBoxSize), maxH);
+    updateCropBoxStyle(ownerInstance);
+
+    // 派发选区尺寸变更给逻辑层
+    ownerInstance.callMethod('onWxsResizeEnd', {
+      width: state.cropW,
+      height: state.cropH
+    });
+    return;
+  }
+
+  // 2. 正常单指/双指手势离开
   if (!touches || touches.length === 0) {
-    // 所有手指离开屏幕
     state.isPinching = false;
     state.startDistance = 0;
 
-    // 派发手势结束事件给 JS 逻辑层，触发坐标收敛与裁剪计算
     ownerInstance.callMethod('onWxsGestureEnd', {
       x: state.currentX,
       y: state.currentY,
@@ -142,7 +276,6 @@ function onTouchEnd(e, ownerInstance) {
       rotation: state.rotation
     });
   } else if (touches.length === 1) {
-    // 抬起其中一指，平滑切回单指继续拖拽
     state.isPinching = false;
     state.startX = touches[0].clientX - state.currentX;
     state.startY = touches[0].clientY - state.currentY;
@@ -159,8 +292,15 @@ function initProps(newVal, oldVal, ownerInstance) {
   if (newVal.flipV !== undefined) state.flipV = newVal.flipV ? -1 : 1;
   if (newVal.minZoom !== undefined) state.minZoom = newVal.minZoom;
   if (newVal.maxZoom !== undefined) state.maxZoom = newVal.maxZoom;
+  if (newVal.cropMode !== undefined) state.cropMode = newVal.cropMode;
+  if (newVal.cropW !== undefined) state.cropW = newVal.cropW;
+  if (newVal.cropH !== undefined) state.cropH = newVal.cropH;
+  if (newVal.containerW !== undefined) state.containerW = newVal.containerW;
+  if (newVal.containerH !== undefined) state.containerH = newVal.containerH;
+  if (newVal.aspect !== undefined) state.aspect = newVal.aspect;
 
   updateTransform(ownerInstance);
+  updateCropBoxStyle(ownerInstance);
 }
 
 module.exports = {

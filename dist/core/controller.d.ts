@@ -1,4 +1,4 @@
-import { Point, Size, AreaPixels, AreaPercent, ControllerOptions, CropState } from './types';
+import { Point, Size, AreaPixels, AreaPercent, CropMode, ControllerOptions, CropState, ResizeHandle } from './types';
 export type ChangeCallback = (state: CropState) => void;
 export type CompleteCallback = (pixels: AreaPixels, percentages: AreaPercent) => void;
 export declare class OmniCropController {
@@ -21,6 +21,13 @@ export declare class OmniCropController {
     flipHorizontal(): void;
     flipVertical(): void;
     reset(): void;
+    setCropMode(cropMode: CropMode): void;
+    setAspect(aspect: number | 'free'): void;
+    resizeCropBox(handle: ResizeHandle, delta: Point): void;
+    setCropSize(size: Size): void;
+    getContainerSize(): Size;
+    zoomIn(step?: number): void;
+    zoomOut(step?: number): void;
     getState(): Readonly<CropState>;
     /**
      * Generates CSS/WXS transformation string

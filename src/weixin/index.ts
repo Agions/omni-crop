@@ -41,6 +41,27 @@ Component({
       y: 0,
       flipH: false,
       flipV: false,
+      cropMode: 'transform-media',
+      cropW: 0,
+      cropH: 0,
+      containerW: 0,
+      containerH: 0,
+      aspect: 4 / 3,
+    },
+  },
+
+  observers: {
+    'cropMode': function (this: any, cropMode: string) {
+      if (this.controller) {
+        this.controller.setCropMode(cropMode);
+        this.syncStateToWxs();
+      }
+    },
+    'aspect': function (this: any, aspect: any) {
+      if (this.controller) {
+        this.controller.setAspect(aspect);
+        this.syncStateToWxs();
+      }
     },
   },
 
@@ -86,19 +107,7 @@ Component({
           if (!res) return;
           const containerSize = { width: res.width, height: res.height };
           this.controller.initDimensions(containerSize, this.naturalSize);
-
-          const state = this.controller.getState();
-          this.setData({
-            cropSize: state.cropSize,
-            wxsProps: {
-              scale: state.zoom,
-              rotation: state.rotation,
-              x: state.crop.x,
-              y: state.crop.y,
-              flipH: state.flip.horizontal,
-              flipV: state.flip.vertical,
-            },
-          });
+          this.syncStateToWxs();
         })
         .exec();
     },
@@ -107,24 +116,25 @@ Component({
       this.triggerEvent('error', err);
     },
 
+    onWxsResizeEnd(this: any, detail: { width: number; height: number }) {
+      this.controller.setCropSize({ width: detail.width, height: detail.height });
+      const state = this.controller.getState();
+      this.setData({
+        cropSize: state.cropSize,
+      });
+      this.triggerEvent('cropsizechange', {
+        width: state.cropSize.width,
+        height: state.cropSize.height,
+      });
+      this.syncStateToWxs();
+    },
+
     onWxsGestureEnd(this: any, detail: { x: number; y: number; scale: number; rotation: number }) {
       this.controller.setCrop({ x: detail.x, y: detail.y });
       this.controller.setZoom(detail.scale);
       this.controller.setRotation(detail.rotation);
       this.controller.notifyComplete();
-
-      const state = this.controller.getState();
-      // Sync back any clamped adjustments
-      this.setData({
-        wxsProps: {
-          scale: state.zoom,
-          rotation: state.rotation,
-          x: state.crop.x,
-          y: state.crop.y,
-          flipH: state.flip.horizontal,
-          flipV: state.flip.vertical,
-        },
-      });
+      this.syncStateToWxs();
     },
 
     /**
@@ -185,27 +195,57 @@ Component({
     },
 
     /**
+     * Imperative API: Set crop mode
+     */
+    setCropMode(this: any, mode: 'transform-media' | 'resize-box') {
+      this.setData({ cropMode: mode });
+      this.controller.setCropMode(mode);
+      this.syncStateToWxs();
+    },
+
+    /**
+     * Imperative API: Set aspect ratio
+     */
+    setAspect(this: any, aspect: number | 'free') {
+      this.setData({ aspect });
+      this.controller.setAspect(aspect);
+      this.syncStateToWxs();
+    },
+
+    /**
      * Imperative API: Export cropped image
      */
     async exportCroppedImage(this: any, options?: ExportOptions): Promise<CropResult> {
+      if (this._isExporting) {
+        throw new Error('Export is already in progress');
+      }
       if (!this.currentPixels) {
         throw new Error('Image dimensions not initialized or crop not ready');
       }
 
-      const state = this.controller.getState();
-      return getCroppedImage({
-        imageSrc: this.data.image,
-        pixelCrop: this.currentPixels,
-        rotation: state.rotation,
-        flip: state.flip,
-        output: options,
-        driver: this.canvasDriver,
-      });
+      this._isExporting = true;
+      try {
+        const state = this.controller.getState();
+        return await getCroppedImage({
+          imageSrc: this.data.image,
+          pixelCrop: this.currentPixels,
+          rotation: state.rotation,
+          flip: state.flip,
+          cropShape: this.data.cropShape,
+          output: options,
+          driver: this.canvasDriver,
+        });
+      } finally {
+        this._isExporting = false;
+      }
     },
 
     syncStateToWxs(this: any) {
+      if (!this.controller) return;
       const state = this.controller.getState();
+      const containerSize = this.controller.getContainerSize();
       this.setData({
+        cropSize: state.cropSize,
         wxsProps: {
           scale: state.zoom,
           rotation: state.rotation,
@@ -213,6 +253,12 @@ Component({
           y: state.crop.y,
           flipH: state.flip.horizontal,
           flipV: state.flip.vertical,
+          cropMode: this.data.cropMode,
+          cropW: state.cropSize.width,
+          cropH: state.cropSize.height,
+          containerW: containerSize.width,
+          containerH: containerSize.height,
+          aspect: this.data.aspect,
         },
       });
     },
