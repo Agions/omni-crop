@@ -1,5 +1,5 @@
-import { OmniCropController } from '../core/index.mjs';
-import { getCroppedImage, WechatCanvas2DDriver } from '../exporter/index.mjs';
+import { OmniCropController, } from '../core/index.mjs';
+import { getCroppedImage, WechatCanvas2DDriver, } from '../exporter/index.mjs';
 Component({
     properties: {
         image: {
@@ -19,19 +19,34 @@ Component({
             value: 4 / 3, // number or 'free'
         },
         showGrid: {
-            type: Boolean,
-            value: true,
+            type: null,
+            value: true, // boolean | 'touch'
         },
         restrictPosition: {
             type: Boolean,
             value: true,
         },
+        autoZoomOnRotate: {
+            type: Boolean,
+            value: true,
+        },
+        enableHaptic: {
+            type: Boolean,
+            value: true,
+        },
+        fineAngle: {
+            type: Number,
+            value: 0,
+        },
     },
     data: {
         cropSize: { width: 0, height: 0 },
+        filterStyle: '',
+        isGridTouching: false,
         wxsProps: {
             scale: 1,
             rotation: 0,
+            fineAngle: 0,
             x: 0,
             y: 0,
             flipH: false,
@@ -57,6 +72,11 @@ Component({
                 this.syncStateToWxs();
             }
         },
+        'fineAngle': function (fineAngle) {
+            if (this.controller && this.controller.getState().fineAngle !== fineAngle) {
+                this.setFineAngle(fineAngle);
+            }
+        },
     },
     lifetimes: {
         attached() {
@@ -66,6 +86,8 @@ Component({
                 cropShape: this.data.cropShape,
                 cropMode: this.data.cropMode,
                 restrictPosition: this.data.restrictPosition,
+                autoZoomOnRotate: this.data.autoZoomOnRotate,
+                initialFineAngle: this.data.fineAngle,
             });
             this.controller.on('complete', (pixels, percentages) => {
                 this.currentPixels = pixels;
@@ -83,6 +105,18 @@ Component({
                     y: Number(state.crop.y.toFixed(1)),
                 });
             });
+        },
+        detached() {
+            // Memory lifecycle governance: destroy canvas and cleanup references
+            if (this.canvasDriver && typeof this.canvasDriver.destroy === 'function') {
+                this.canvasDriver.destroy();
+            }
+            this.canvasDriver = null;
+            this.controller = null;
+            if (this.gridTouchTimer) {
+                clearTimeout(this.gridTouchTimer);
+                this.gridTouchTimer = null;
+            }
         },
     },
     methods: {
@@ -104,6 +138,26 @@ Component({
         onImageError(err) {
             this.triggerEvent('error', err);
         },
+        onWxsTouchStart() {
+            if (this.data.showGrid === 'touch') {
+                if (this.gridTouchTimer) {
+                    clearTimeout(this.gridTouchTimer);
+                    this.gridTouchTimer = null;
+                }
+                this.setData({ isGridTouching: true });
+            }
+        },
+        onWxsTouchEnd() {
+            if (this.data.showGrid === 'touch') {
+                if (this.gridTouchTimer) {
+                    clearTimeout(this.gridTouchTimer);
+                }
+                this.gridTouchTimer = setTimeout(() => {
+                    this.setData({ isGridTouching: false });
+                    this.gridTouchTimer = null;
+                }, 400);
+            }
+        },
         onWxsResizeEnd(detail) {
             this.controller.setCropSize({ width: detail.width, height: detail.height });
             const state = this.controller.getState();
@@ -124,9 +178,51 @@ Component({
             this.syncStateToWxs();
         },
         /**
+         * Imperative API: Set fine rotation angle (-45° ~ +45°) with smart auto-zoom
+         */
+        setFineAngle(angle) {
+            const oldAngle = this.controller.getState().fineAngle;
+            this.controller.setFineAngle(angle);
+            const newAngle = this.controller.getState().fineAngle;
+            if (this.data.enableHaptic && oldAngle !== 0 && newAngle === 0) {
+                try {
+                    wx.vibrateShort({ type: 'light' });
+                }
+                catch (_e) { }
+            }
+            this.syncStateToWxs();
+            this.triggerEvent('fineanglechange', {
+                fineAngle: newAngle,
+                totalRotation: this.controller.getTotalRotation(),
+            });
+        },
+        /**
+         * Imperative API: Set real-time filter (GPU preview + Canvas shader)
+         */
+        setFilter(filter) {
+            this.controller.setFilter(filter);
+            const filterStyle = this.controller.getFilterStyle();
+            this.setData({ filterStyle });
+            this.triggerEvent('filterchange', {
+                filter: this.controller.getState().filter,
+            });
+        },
+        /**
+         * Imperative API: Get full mathematical crop dataset and CDN query params
+         */
+        getCropData() {
+            return this.controller.getCropData();
+        },
+        /**
          * Imperative API: Rotate clockwise
          */
         rotate(stepAngle = 90) {
+            if (this.data.enableHaptic) {
+                try {
+                    wx.vibrateShort({ type: 'light' });
+                }
+                catch (_e) { }
+            }
             this.controller.rotate(stepAngle);
             this.syncStateToWxs();
         },
@@ -149,6 +245,9 @@ Component({
          */
         reset() {
             this.controller.reset();
+            this.setData({
+                filterStyle: this.controller.getFilterStyle(),
+            });
             this.syncStateToWxs();
         },
         /**
@@ -205,9 +304,10 @@ Component({
                 return await getCroppedImage({
                     imageSrc: this.data.image,
                     pixelCrop: this.currentPixels,
-                    rotation: state.rotation,
+                    rotation: this.controller.getTotalRotation(),
                     flip: state.flip,
                     cropShape: this.data.cropShape,
+                    filter: state.filter,
                     output: options,
                     driver: this.canvasDriver,
                 });
@@ -226,6 +326,7 @@ Component({
                 wxsProps: {
                     scale: state.zoom,
                     rotation: state.rotation,
+                    fineAngle: state.fineAngle,
                     x: state.crop.x,
                     y: state.crop.y,
                     flipH: state.flip.horizontal,

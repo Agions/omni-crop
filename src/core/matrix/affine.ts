@@ -22,6 +22,31 @@ export function getRotatedSize(width: number, height: number, rotation: number):
 }
 
 /**
+ * Computes minimum zoom required to ensure rotated media fully covers crop size
+ * without exposing transparent or empty borders (Smart Auto-Zoom Bounding)
+ */
+export function getAutoZoomRatio(
+  cropSize: Size,
+  mediaSize: Size,
+  angle: number
+): number {
+  if (mediaSize.width <= 0 || mediaSize.height <= 0) return 1;
+
+  const rad = degreeToRadian(Math.abs(angle));
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+
+  // Projected dimensions required to encompass the crop box under rotation angle
+  const projW = cropSize.width * cos + cropSize.height * sin;
+  const projH = cropSize.width * sin + cropSize.height * cos;
+
+  const zoomX = projW / mediaSize.width;
+  const zoomY = projH / mediaSize.height;
+
+  return Math.max(zoomX, zoomY, 1);
+}
+
+/**
  * Computes default crop container size given container dimensions and aspect ratio
  */
 export function getInitialCropSize(

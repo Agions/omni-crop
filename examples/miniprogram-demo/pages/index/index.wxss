@@ -11,13 +11,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 16px;
   background-color: #18181b;
   border-bottom: 1px solid #27272a;
 }
 
 .header-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #fafafa;
 }
@@ -47,22 +47,81 @@
   background-color: #000;
 }
 
-/* 缩放滑块控制条 (与用户指定截图视觉 100% 对齐) */
+/* 微调角度标尺控制条 */
+.fine-angle-bar {
+  background-color: #141416;
+  padding: 8px 16px;
+  border-top: 1px solid #27272a;
+  border-bottom: 1px solid #27272a;
+}
+
+.angle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.angle-label {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+.angle-badge {
+  font-size: 11px;
+  color: #38bdf8;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.angle-badge.snap-active {
+  color: #4ade80;
+}
+
+.angle-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.angle-limit {
+  font-size: 11px;
+  color: #71717a;
+  width: 24px;
+  text-align: center;
+}
+
+.angle-slider {
+  flex: 1;
+  margin: 0 !important;
+}
+
+.angle-reset-btn {
+  font-size: 11px;
+  color: #e4e4e7;
+  background-color: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+/* 缩放滑块控制条 */
 .zoom-slider-bar {
   display: flex;
   align-items: center;
-  height: 52px;
+  height: 44px;
   background-color: #ffffff;
   padding: 0 16px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .zoom-symbol {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 500;
   color: #6b7280;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,10 +147,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: 14px;
-  padding: 6px 8px;
+  margin-left: 12px;
+  padding: 4px 6px;
   color: #4b5563;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   user-select: none;
 }
@@ -101,53 +160,59 @@
 }
 
 .reset-icon {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
 }
 
 .reset-text {
-  font-size: 13px;
+  font-size: 12px;
   color: #4b5563;
 }
 
 /* 底部操作面板 */
 .control-panel {
+  max-height: 240px;
   background-color: #18181b;
-  padding: 14px 16px;
+  padding: 10px 16px;
   border-top: 1px solid #27272a;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  box-sizing: border-box;
 }
 
 .control-group {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .group-label {
-  font-size: 13px;
+  font-size: 12px;
   color: #a1a1aa;
   width: 32px;
+  padding-top: 4px;
 }
 
 .btn-group {
   display: flex;
   flex: 1;
-  gap: 8px;
+  gap: 6px;
+}
+
+.btn-group.wrap-group {
+  flex-wrap: wrap;
 }
 
 .pill-btn {
   flex: 1;
+  min-width: 48px;
   text-align: center;
-  font-size: 12px;
-  padding: 6px 0;
+  font-size: 11px;
+  padding: 5px 6px;
   background-color: #27272a;
   color: #d4d4d8;
   border-radius: 6px;
   border: 1px solid #3f3f46;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .pill-btn.active {
@@ -157,42 +222,22 @@
   font-weight: 600;
 }
 
-/* 手势提示条 */
-.gesture-tip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px 8px;
-  background-color: rgba(37, 99, 235, 0.1);
-  border: 1px dashed rgba(59, 130, 246, 0.4);
-  border-radius: 6px;
-}
-
-.tip-icon {
-  font-size: 13px;
-}
-
-.tip-text {
-  font-size: 11px;
-  color: #93c5fd;
-}
-
 /* 工具按钮行 */
 .tools-row {
   display: flex;
   justify-content: space-around;
-  padding: 4px 0;
+  padding: 6px 0;
   border-top: 1px solid #27272a;
   border-bottom: 1px solid #27272a;
+  margin: 6px 0;
 }
 
 .tool-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 3px;
+  padding: 4px 8px;
   border-radius: 6px;
 }
 
@@ -201,11 +246,11 @@
 }
 
 .tool-icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .tool-text {
-  font-size: 11px;
+  font-size: 10px;
   color: #a1a1aa;
 }
 
@@ -215,13 +260,14 @@
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   color: #ffffff !important;
   border-radius: 8px !important;
-  font-size: 15px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
-  line-height: 44px !important;
+  line-height: 40px !important;
   margin-top: 4px;
+  margin-bottom: 12px;
 }
 
-/* 导出结果弹窗 */
+/* 弹窗样式 */
 .result-modal {
   position: fixed;
   top: 0;
@@ -259,33 +305,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid #27272a;
 }
 
 .modal-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #fafafa;
 }
 
 .modal-close {
-  font-size: 16px;
+  font-size: 15px;
   color: #71717a;
   padding: 4px;
 }
 
 .modal-body {
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .preview-img {
-  width: 240px;
-  height: 240px;
+  width: 220px;
+  height: 220px;
   background-color: #09090b;
   border-radius: 8px;
   border: 1px dashed #3f3f46;
@@ -295,18 +341,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .meta-item {
-  font-size: 12px;
+  font-size: 11px;
   color: #a1a1aa;
 }
 
 .modal-footer {
   display: flex;
-  padding: 12px 16px;
-  gap: 10px;
+  padding: 10px 14px;
+  gap: 8px;
   border-top: 1px solid #27272a;
 }
 
@@ -315,7 +361,7 @@
   background-color: #2563eb !important;
   font-size: 13px !important;
   border-radius: 6px !important;
-  line-height: 36px !important;
+  line-height: 34px !important;
 }
 
 .btn-cancel {
@@ -324,5 +370,50 @@
   color: #d4d4d8 !important;
   font-size: 13px !important;
   border-radius: 6px !important;
-  line-height: 36px !important;
+  line-height: 34px !important;
+}
+
+/* 云端参数弹窗 */
+.cloud-modal-content {
+  width: 90%;
+  max-height: 80vh;
+}
+
+.cloud-body {
+  align-items: stretch;
+  gap: 12px;
+}
+
+.cloud-info-card {
+  background-color: #121214;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.cloud-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.code-box {
+  background-color: #09090b;
+  color: #a1a1aa;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  margin-bottom: 6px;
+}
+
+.btn-copy-small {
+  margin: 0 !important;
+  font-size: 11px !important;
+  background-color: #27272a !important;
+  color: #e4e4e7 !important;
+  border: 1px solid #3f3f46 !important;
+  line-height: 24px !important;
 }

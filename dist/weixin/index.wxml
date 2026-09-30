@@ -14,6 +14,7 @@
     <image
       id="omni-crop-target-image"
       class="omni-crop-media"
+      style="{{filterStyle}}"
       src="{{image}}"
       mode="aspectFit"
       bindload="onImageLoaded"
@@ -29,10 +30,12 @@
   >
     <!-- Grid lines -->
     <block wx:if="{{showGrid}}">
-      <view class="omni-crop-grid-line line-horizontal line-h-1"></view>
-      <view class="omni-crop-grid-line line-horizontal line-h-2"></view>
-      <view class="omni-crop-grid-line line-vertical line-v-1"></view>
-      <view class="omni-crop-grid-line line-vertical line-v-2"></view>
+      <view class="omni-crop-grid-container {{showGrid === 'touch' ? (isGridTouching ? 'grid-touch-visible' : 'grid-touch-hidden') : ''}}">
+        <view class="omni-crop-grid-line line-horizontal line-h-1"></view>
+        <view class="omni-crop-grid-line line-horizontal line-h-2"></view>
+        <view class="omni-crop-grid-line line-vertical line-v-1"></view>
+        <view class="omni-crop-grid-line line-vertical line-v-2"></view>
+      </view>
     </block>
 
     <!-- 8 Handles for Mode B (free box resizing) -->

@@ -3,12 +3,17 @@ Page({
     imageUrl: '/assets/sample.png',
     cropMode: 'transform-media',
     cropShape: 'rect',
-    showGrid: true,
+    showGrid: 'touch', // 'touch' | true | false
     restrictPosition: true,
+    autoZoomOnRotate: true,
+    enableHaptic: true,
     aspectList: [
       { name: '1:1', value: 1 },
       { name: '4:3', value: 4 / 3 },
       { name: '16:9', value: 16 / 9 },
+      { name: '4:5', value: 4 / 5 },
+      { name: '9:16', value: 9 / 16 },
+      { name: '3:2', value: 3 / 2 },
       { name: '自由', value: 'free' },
     ],
     aspectIndex: 1,
@@ -16,21 +21,33 @@ Page({
     minZoom: 1,
     maxZoom: 5,
     currentZoom: 1,
+    currentFineAngle: 0,
+    filterList: [
+      { name: '原图', key: 'normal' },
+      { name: '黑白', key: 'bw' },
+      { name: '胶片', key: 'vintage' },
+      { name: '鲜艳', key: 'vivid' },
+      { name: '冷调', key: 'cool' },
+      { name: '暖色', key: 'warm' },
+    ],
+    currentFilterKey: 'normal',
+    currentFilterName: '原图',
     isExporting: false,
     resultDialogVisible: false,
     resultImageUrl: '',
     resultMeta: { width: 0, height: 0 },
+    cloudDialogVisible: false,
+    cloudData: null,
   },
 
   onLoad() {
-    console.log('OmniCrop Page loaded');
+    console.log('OmniCrop 2.0 Page loaded');
   },
 
   getCropper() {
     return this.selectComponent('#cropper');
   },
 
-  // 1. 选择本地相册或拍摄图片
   chooseImage() {
     wx.chooseMedia({
       count: 1,
@@ -49,14 +66,12 @@ Page({
     });
   },
 
-  // 2. 切换回预置示例图
   useSampleImage() {
     this.setData({
       imageUrl: '/assets/sample.png',
     });
   },
 
-  // 3. 切换交互模式 (底图变换 / 选区拉伸)
   onSelectMode(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({ cropMode: mode });
@@ -66,7 +81,6 @@ Page({
     }
   },
 
-  // 4. 切换裁剪比例
   onSelectAspect(e) {
     const index = Number(e.currentTarget.dataset.index);
     this.setData({
@@ -75,15 +89,64 @@ Page({
     });
   },
 
-  // 4. 切换裁剪框形状 (矩形 / 圆形)
   onSelectShape(e) {
     const shape = e.currentTarget.dataset.shape;
-    this.setData({
-      cropShape: shape,
-    });
+    this.setData({ cropShape: shape });
   },
 
-  // 5. 缩放监听与滑块联动
+  onSelectGrid(e) {
+    const grid = e.currentTarget.dataset.grid;
+    let showGrid = true;
+    if (grid === 'touch') showGrid = 'touch';
+    else if (grid === 'none') showGrid = false;
+    this.setData({ showGrid });
+  },
+
+  onSelectFilter(e) {
+    const key = e.currentTarget.dataset.key;
+    const filter = this.data.filterList.find((f) => f.key === key);
+    this.setData({
+      currentFilterKey: key,
+      currentFilterName: filter ? filter.name : '原图',
+    });
+    const cropper = this.getCropper();
+    if (cropper && cropper.setFilter) {
+      cropper.setFilter({ preset: key });
+    }
+  },
+
+  onFineAngleSliderChanging(e) {
+    const angle = Number(e.detail.value.toFixed(1));
+    this.setData({ currentFineAngle: angle });
+    const cropper = this.getCropper();
+    if (cropper && cropper.setFineAngle) {
+      cropper.setFineAngle(angle);
+    }
+  },
+
+  onFineAngleSliderChange(e) {
+    const angle = Number(e.detail.value.toFixed(1));
+    this.setData({ currentFineAngle: angle });
+    const cropper = this.getCropper();
+    if (cropper && cropper.setFineAngle) {
+      cropper.setFineAngle(angle);
+    }
+  },
+
+  handleResetAngle() {
+    this.setData({ currentFineAngle: 0 });
+    const cropper = this.getCropper();
+    if (cropper && cropper.setFineAngle) {
+      cropper.setFineAngle(0);
+    }
+  },
+
+  onFineAngleChange(e) {
+    if (e.detail && typeof e.detail.fineAngle === 'number') {
+      this.setData({ currentFineAngle: e.detail.fineAngle });
+    }
+  },
+
   onZoomChange(e) {
     if (e.detail && e.detail.zoom) {
       this.setData({
@@ -110,7 +173,6 @@ Page({
     this.setData({ currentZoom: zoom });
   },
 
-  // 6. 点击放大
   handleZoomIn() {
     const next = Math.min(this.data.maxZoom, Number((this.data.currentZoom + 0.2).toFixed(2)));
     const cropper = this.getCropper();
@@ -118,7 +180,6 @@ Page({
     this.setData({ currentZoom: next });
   },
 
-  // 7. 点击缩小
   handleZoomOut() {
     const next = Math.max(this.data.minZoom, Number((this.data.currentZoom - 0.2).toFixed(2)));
     const cropper = this.getCropper();
@@ -126,34 +187,38 @@ Page({
     this.setData({ currentZoom: next });
   },
 
-  // 8. 顺时针旋转90°
   handleRotate() {
     const cropper = this.getCropper();
     if (cropper) cropper.rotate(90);
   },
 
-  // 9. 水平镜像翻转
   handleFlipH() {
     const cropper = this.getCropper();
     if (cropper) cropper.flipHorizontal();
   },
 
-  // 10. 垂直镜像翻转
   handleFlipV() {
     const cropper = this.getCropper();
     if (cropper) cropper.flipVertical();
   },
 
-  // 11. 重置变换
   handleReset() {
     const cropper = this.getCropper();
-    if (cropper) cropper.reset();
-    this.setData({ currentZoom: 1 });
+    if (cropper) {
+      cropper.reset();
+      cropper.setFineAngle(0);
+      cropper.setFilter({ preset: 'normal' });
+    }
+    this.setData({
+      currentZoom: 1,
+      currentFineAngle: 0,
+      currentFilterKey: 'normal',
+      currentFilterName: '原图',
+    });
   },
 
-  // 12. 裁剪完成事件监听
   onCropComplete(e) {
-    const { croppedAreaPixels, croppedAreaPercentages, zoom } = e.detail;
+    const { croppedAreaPixels, zoom } = e.detail;
     this.lastCropPixels = croppedAreaPixels;
     if (zoom) {
       this.setData({ currentZoom: zoom });
@@ -167,7 +232,32 @@ Page({
     });
   },
 
-  // 10. 执行 Canvas 2D 裁剪并导出
+  handleOpenCloudParams() {
+    const cropper = this.getCropper();
+    if (!cropper || !cropper.getCropData) return;
+    const cropData = cropper.getCropData();
+    this.setData({
+      cloudData: cropData,
+      cloudDialogVisible: true,
+    });
+  },
+
+  closeCloudDialog() {
+    this.setData({ cloudDialogVisible: false });
+  },
+
+  copyText(e) {
+    const text = e.currentTarget.dataset.text;
+    if (text) {
+      wx.setClipboardData({
+        data: text,
+        success: () => {
+          wx.showToast({ title: '已复制到剪贴板', icon: 'success' });
+        },
+      });
+    }
+  },
+
   async handleExport() {
     const cropper = this.getCropper();
     if (!cropper) return;
@@ -203,7 +293,6 @@ Page({
     }
   },
 
-  // 保存图片到系统相册
   saveToAlbum() {
     if (!this.data.resultImageUrl) return;
 

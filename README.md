@@ -462,10 +462,13 @@ export function WebCropDemo() {
 | 属性名 | 类型 | 默认值 | 描述 |
 | :--- | :--- | :--- | :--- |
 | `image` | `string` | `""` | 待裁剪图片地址（支持本地文件临时路径、HTTPS 远程 CDN 地址、Base64） |
-| `aspect` | `number \| "free"` | `4 / 3` | 裁剪区域宽高比，例如 `1` 为正方形，`16 / 9` 为宽屏，`"free"` 为自由比例 |
+| `aspect` | `number \| "free"` | `4 / 3` | 裁剪区域宽高比，例如 `1`、`4 / 3`、`16 / 9`、`4 / 5` (小红书/Ins)、`9 / 16` (竖屏)、`3 / 2` (单反)，`"free"` 为自由比例 |
 | `cropShape` | `"rect" \| "round"` | `"rect"` | 裁剪框形状：`rect` 矩形，`round` 圆形（圆形模式自动应用真抗锯齿 `ctx.arc/clip`，且默认输出 PNG 保留透明背景） |
 | `cropMode` | `"transform-media" \| "resize-box"` | `"transform-media"` | 交互模式：`transform-media` 经典移动底图；`resize-box` 8 触控锚点自由拉伸选区 + 32px 隐式热区 + WXS 阻尼物理动效 |
-| `showGrid` | `boolean` | `true` | 是否在手势交互中展示九宫格辅助构图参考线 |
+| `showGrid` | `boolean \| "touch"` | `true` | 九宫格辅助线策略：`true` 常驻显示；`"touch"` 触碰平滑浮现、松手自动淡出保持纯净视野；`false` 隐藏 |
+| `autoZoomOnRotate` | `boolean` | `true` | 防露白智能自适应缩放：微调角度时自动计算最小安全外接投影尺寸并平滑充满，杜绝黑边露底 |
+| `enableHaptic` | `boolean` | `true` | 微信轻量触感反馈：在 0° 刻度校平磁吸与 90° 旋转时调用 `wx.vibrateShort` 轻微震动 |
+| `fineAngle` | `number` | `0` | 角度微调初值（-45° ~ +45°），可与标尺 Slider 双向无缝绑定 |
 | `restrictPosition` | `boolean` | `true` | 边界吸附限制策略：为 `true` 时严格禁止选区露出黑边背景 |
 
 ---
@@ -476,6 +479,8 @@ export function WebCropDemo() {
 | :--- | :--- | :--- |
 | `bindcropcomplete` | `{ croppedAreaPixels, croppedAreaPercentages }` | 手势离开、缩放结束或尺寸初始化完成时回调精准几何坐标 |
 | `bindzoomchange` | `{ zoom: number }` | 双指缩放或滑块调整使得缩放比例产生变化时实时回传 |
+| `bindfineanglechange` | `{ fineAngle: number, totalRotation: number }` | 标尺角度微调时触发，包含当前微调角度及累计总旋转角度 |
+| `bindfilterchange` | `{ filter: CropFilterOptions }` | 实时滤镜调色配置变更时触发 |
 | `bindcropchange` | `{ x: number, y: number }` | 图片在裁剪容器内的偏移量发生变化时触发 |
 | `bindcropsizechange` | `{ width: number, height: number }` | 模式 B 拖动 8 锚点调整选区大小完成后触发 |
 | `binderror` | `{ errMsg: string, ... }` | 图片加载失败或运行异常时触发 |
@@ -488,20 +493,23 @@ export function WebCropDemo() {
 
 | 方法名 | 入参 | 返回值 | 功能说明 |
 | :--- | :--- | :--- | :--- |
+| `setFineAngle(angle)` | `angle: number` (-45 ~ +45) | `void` | 角度微调标尺，带 0° 智能磁吸对齐与动态最小安全充满自动缩放 |
+| `setFilter(filter)` | `filter: Partial<CropFilterOptions>` | `void` | 应用双层实时滤镜（GPU CSS 实时 60FPS 预览 + Canvas 2D 导出着色对齐） |
+| `getCropData()` | - | `CropDataResult` | 0ms 纯数学坐标导出（零 Canvas 显存开销），并返回阿里云 OSS、腾讯云 COS、七牛云裁剪指令 |
 | `setCropMode(mode)` | `'transform-media' \| 'resize-box'` | `void` | 动态切换交互模式（底图变换 vs 8 锚点选区拉伸） |
 | `setAspect(aspect)` | `number \| 'free'` | `void` | 动态切换裁剪比例并自适应重新计算选区框 |
-| `rotate(stepAngle)` | `stepAngle?: number` (默认 90) | `void` | 顺时针步进旋转图片 |
+| `rotate(stepAngle)` | `stepAngle?: number` (默认 90) | `void` | 顺时针步进旋转图片（支持触感震动反馈） |
 | `zoomIn(step)` | `step?: number` (默认 0.25) | `void` | 以当前中心点放大视图 |
 | `zoomOut(step)` | `step?: number` (默认 0.25) | `void` | 以当前中心点缩小视图（受限于防露白最小倍率） |
 | `setZoom(zoom)` | `zoom: number` | `void` | 精确设置缩放比例（常用于滑块拖动无缝联动） |
 | `flipHorizontal()` | - | `void` | 水平镜像翻转 |
 | `flipVertical()` | - | `void` | 垂直镜像翻转 |
-| `reset()` | - | `void` | 重置所有旋转、翻转、缩放与位移状态至居中初始态 |
-| `exportCroppedImage(options)` | `options?: ExportOptions` | `Promise<CropResult>` | 核心方法：使用 Canvas 2D 离屏导出裁剪后的高清图片（带并发防重锁与防 OOM 自适应） |
+| `reset()` | - | `void` | 重置所有旋转、翻转、缩放、微调角度与滤镜状态至初始态 |
+| `exportCroppedImage(options)` | `options?: ExportOptions` | `Promise<CropResult>` | 核心方法：使用 Canvas 2D 离屏导出裁剪后的高清图片（带滤镜调色渲染、并发防重锁与防 OOM 自适应） |
 
 ---
 
-### 导出配置 (ExportOptions)
+### 导出配置 (ExportOptions) 与云裁剪参数 (CropDataResult)
 
 ```typescript
 export interface ExportOptions {
@@ -513,15 +521,31 @@ export interface ExportOptions {
   dpr?: number;
   /** 最大分辨率限制，默认 4096，超出时自动执行保比例下采样防止 OOM 闪退 */
   maxResolution?: number;
+  /** 滤镜配置，默认继承当前预览滤镜 */
+  filter?: CropFilterOptions;
 }
 
-export interface CropResult {
-  /** 导出图片的本地临时路径 (小程序端可直接用于 previewImage 或 saveImageToPhotosAlbum) */
-  uri: string;
-  /** 导出的物理像素宽度 */
-  width: number;
-  /** 导出的物理像素高度 */
-  height: number;
+export interface CropDataResult {
+  /** 物理像素绝对坐标 */
+  pixelCrop: { x: number; y: number; width: number; height: number };
+  /** 相对百分比坐标 (0 - 100) */
+  percentCrop: { x: number; y: number; width: number; height: number };
+  /** 步进旋转角度 */
+  rotation: number;
+  /** 微调角度 (-45 ~ +45) */
+  fineAngle: number;
+  /** 累计旋转角度 */
+  totalRotation: number;
+  /** 翻转状态 */
+  flip: { horizontal: boolean; vertical: boolean };
+  /** 当前滤镜 */
+  filter: CropFilterOptions;
+  /** 零开销各大主流云存储 CDN 裁剪 Query 指令 */
+  cloudParams: {
+    aliyunOss: string;  // ?x-oss-process=image/crop,x_...,y_...,w_...,h_...
+    tencentCos: string; // ?imageMogr2/cut/...
+    qiniu: string;      // ?imageMogr2/crop/...
+  };
 }
 ```
 

@@ -1,3 +1,4 @@
+import { getFilterCss, applyFilterToImageData } from '../../core/index.mjs';
 export class WebCanvasDriver {
     constructor() {
         this.name = 'web-html5-canvas';
@@ -27,7 +28,7 @@ export class WebCanvasDriver {
         const ctx = canvas.getContext('2d');
         if (!ctx)
             throw new Error('Failed to get 2d context on canvas');
-        const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight } = params;
+        const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight, filter } = params;
         ctx.save();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // Circular clipping when cropShape === 'round'
@@ -43,8 +44,28 @@ export class WebCanvasDriver {
             ctx.rotate((rotation * Math.PI) / 180);
         }
         ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
+        let filterApplied = false;
+        if (filter) {
+            const cssFilter = getFilterCss(filter);
+            if (cssFilter !== 'none' && 'filter' in ctx) {
+                ctx.filter = cssFilter;
+                filterApplied = true;
+            }
+        }
         ctx.drawImage(imageSource, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, -outputWidth / 2, -outputHeight / 2, outputWidth, outputHeight);
         ctx.restore();
+        if (filter && !filterApplied) {
+            try {
+                const imgData = ctx.getImageData(0, 0, outputWidth, outputHeight);
+                if (imgData && imgData.data) {
+                    applyFilterToImageData(imgData.data, outputWidth, outputHeight, filter);
+                    ctx.putImageData(imgData, 0, 0);
+                }
+            }
+            catch (_e) {
+                // Fallback gracefully if getImageData throws (e.g. tainted canvas)
+            }
+        }
     }
     async export(canvas, options) {
         const mimeType = options.format === 'png' ? 'image/png' : options.format === 'webp' ? 'image/webp' : 'image/jpeg';
@@ -65,5 +86,8 @@ export class WebCanvasDriver {
             width: canvas.width,
             height: canvas.height,
         };
+    }
+    destroy() {
+        // Explicit cleanup for memory lifecycle governance
     }
 }

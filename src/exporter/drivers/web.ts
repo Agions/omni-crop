@@ -1,3 +1,4 @@
+import { getFilterCss, applyFilterToImageData } from '../../core';
 import { ICanvasDriver, RenderParams, ExportOptions, CropResult } from './types';
 
 export class WebCanvasDriver implements ICanvasDriver {
@@ -30,7 +31,7 @@ export class WebCanvasDriver implements ICanvasDriver {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Failed to get 2d context on canvas');
 
-    const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight } = params;
+    const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight, filter } = params;
 
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -50,6 +51,15 @@ export class WebCanvasDriver implements ICanvasDriver {
     }
     ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
 
+    let filterApplied = false;
+    if (filter) {
+      const cssFilter = getFilterCss(filter);
+      if (cssFilter !== 'none' && 'filter' in ctx) {
+        ctx.filter = cssFilter;
+        filterApplied = true;
+      }
+    }
+
     ctx.drawImage(
       imageSource,
       pixelCrop.x,
@@ -63,6 +73,18 @@ export class WebCanvasDriver implements ICanvasDriver {
     );
 
     ctx.restore();
+
+    if (filter && !filterApplied) {
+      try {
+        const imgData = ctx.getImageData(0, 0, outputWidth, outputHeight);
+        if (imgData && imgData.data) {
+          applyFilterToImageData(imgData.data, outputWidth, outputHeight, filter);
+          ctx.putImageData(imgData, 0, 0);
+        }
+      } catch (_e) {
+        // Fallback gracefully if getImageData throws (e.g. tainted canvas)
+      }
+    }
   }
 
   async export(canvas: HTMLCanvasElement, options: ExportOptions): Promise<CropResult> {
@@ -88,5 +110,9 @@ export class WebCanvasDriver implements ICanvasDriver {
       width: canvas.width,
       height: canvas.height,
     };
+  }
+
+  destroy(): void {
+    // Explicit cleanup for memory lifecycle governance
   }
 }

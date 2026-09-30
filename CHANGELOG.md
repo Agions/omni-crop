@@ -4,6 +4,41 @@
 
 ---
 
+## [1.1.0] - 2026-09-30
+
+### 🚀 重大特性与架构升级 (Major Features & Architecture)
+- **📐 角度微调标尺 (Fine-Angle Horizon Leveling Ruler)**：
+  - 支持 **$-45^\circ \sim +45^\circ$** 高精度地平线校平微调，与 $90^\circ$ 步进旋转完全正交解耦，合成为全局总偏转角；
+  - 拥有 **$0^\circ$ 磁吸回弹对齐 (Magnetic Snap)**，在微调接近水平线时提供精准贴合与触觉级控制体验；
+  - 在微信小程序端采用专属标尺刻度滑动设计，支持单指拖拽即时响应。
+- **🧮 智能防露白自适应缩放算法 (Smart Auto-Zoom Bounding)**：
+  - 彻底攻克任意倾角旋转时图片边界内缩露出黑底/白底的几何难题；
+  - 基于投影包络边界纯数学推导：
+    $$W_{\text{proj}} = W_{\text{crop}} \cdot |\cos\theta| + H_{\text{crop}} \cdot |\sin\theta|$$
+    $$H_{\text{proj}} = W_{\text{crop}} \cdot |\sin\theta| + H_{\text{crop}} \cdot |\cos\theta|$$
+  - 控制器在微调倾角时实时计算最小无露白缩放比 $S_{\min}(\theta)$，动态提升当前缩放比，确保选区在全角度旋转下 $100\%$ 被图片像素充实，无瑕疵出图。
+- **🎨 双层实时滤镜系统 (Dual-Layer Filter Pipeline)**：
+  - **预览层 60 FPS GPU 加速**：依托 CSS 原生滤镜（`contrast`、`brightness`、`grayscale`、`sepia`、`hue-rotate`），滑动调节零卡顿；
+  - **导出层 Canvas 2D 真实着色对齐**：导出流水线优先调用硬件级 `ctx.filter`，并在不支持的环境下自动降级至 CPU 级像素着色器（Fallback Shader），保证导出图与界面预览所见即所得；
+  - 内置 6 款预设色彩风格：原图 (`normal`)、黑白经典 (`bw`)、复古胶片 (`vintage`)、鲜活色彩 (`vivid`)、清冷冷调 (`cool`)、温暖落日 (`warm`)。
+- **⚡ 零开销选区数据导出与云端裁剪直传 (Zero-Overhead Crop Data & Cloud CDN Cropping)**：
+  - 新增 `getCropData()` 方法，耗时 **$< 0.1\text{ms}$**，直接返回规范化选区参数（归一化矩形、物理像素矩形、总旋转偏转角、镜像翻转标志及当前滤镜选项）；
+  - 开箱即用支持主流云存储 CDN 裁剪指令生成：
+    - **阿里云 OSS** (`image/crop,x_...,y_...,w_...,h_...`)
+    - **腾讯云 COS** (`imageMogr2/cut/...x...x...x...`)
+    - **七牛云** (`imageMogr2/crop/...x...+...+...`)
+  - 极大降低大图在移动端 Canvas 渲染的显存与 CPU 压力，实现“前端只做交互确定选区，实际切图由 CDN 边缘节点零时延处理”的高端架构。
+- **✨ 沉浸式手势辅助线与触感震动反馈 (Immersive UX)**：
+  - `showGrid` 属性新增 `'touch'` 模式：手指触控操作图片或选区时网格丝滑渐显（Fade-in），松手后延迟 400ms 平滑淡出（Fade-out），大幅降低常驻参考线对视觉审美的干扰；
+  - `enableHaptic` 触感震动反馈：在旋转步进、达到最大/最小缩放极限阻尼及标尺磁吸时触发微震动，带来实体相机般的操控质感。
+- **🛡️ 内存与生命周期深度治理 (Memory Leak Prevention)**：
+  - 在微信小程序 `detached` 生命周期中对 Canvas 2D 导出驱动执行主动资源注销与句柄置空 (`driver.destroy()`)，杜绝多页面跳转重复挂载导致的小程序显存持续泄漏；
+  - 完善导出互斥锁与异常拦截。
+- **📐 扩展主流社交画幅预设**：
+  - 新增 `4:5` (小红书/Instagram 竖版封面)、`9:16` (抖音/视频号短视频全屏) 及 `3:2` (单反相机标准画幅) 快速切换。
+
+---
+
 ## [1.0.3] - 2026-09-29
 
 ### 🐛 缺陷修复 (Bug Fixes)

@@ -39,17 +39,7 @@ function clampPosition(point, bounds) {
  * Computes minimum zoom required to ensure rotated media fully covers crop size
  */
 function getMinZoom(cropSize, mediaSize, rotation) {
-    if (mediaSize.width <= 0 || mediaSize.height <= 0)
-        return 1;
-    const rad = (Math.abs(rotation) * Math.PI) / 180;
-    const cos = Math.abs(Math.cos(rad));
-    const sin = Math.abs(Math.sin(rad));
-    // Required width/height of the unrotated media so its rotated projection covers cropSize
-    const requiredW = cropSize.width * cos + cropSize.height * sin;
-    const requiredH = cropSize.width * sin + cropSize.height * cos;
-    const zoomX = requiredW / mediaSize.width;
-    const zoomY = requiredH / mediaSize.height;
-    return Math.max(zoomX, zoomY, 1);
+    return (0, affine_1.getAutoZoomRatio)(cropSize, mediaSize, rotation);
 }
 /**
  * Calculates spring resistance when dragging outside bounds (elastic drag physics)

@@ -2,7 +2,7 @@
  * High-level image cropping pipeline
  */
 export async function getCroppedImage(options) {
-    const { imageSrc, pixelCrop, rotation = 0, flip = { horizontal: false, vertical: false }, cropShape = 'rect', output = {}, driver, } = options;
+    const { imageSrc, pixelCrop, rotation = 0, flip = { horizontal: false, vertical: false }, cropShape = 'rect', filter, output = {}, driver, } = options;
     if (!driver) {
         throw new Error('Platform driver is required to export cropped image.');
     }
@@ -42,6 +42,7 @@ export async function getCroppedImage(options) {
             cropShape,
             outputWidth: outW * dpr,
             outputHeight: outH * dpr,
+            filter: effectiveOutput.filter ?? filter,
         });
         // 5. Export canvas to file path or Base64
         return await driver.export(canvas, effectiveOutput);

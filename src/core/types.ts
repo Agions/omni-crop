@@ -40,6 +40,32 @@ export interface CropBoundaries {
   maxY: number;
 }
 
+export type CropFilterPreset = 'normal' | 'bw' | 'vintage' | 'vivid' | 'cool' | 'warm';
+
+export interface CropFilterOptions {
+  preset?: CropFilterPreset;
+  brightness?: number; // 0.5 ~ 1.5, default 1.0
+  contrast?: number;   // 0.5 ~ 1.5, default 1.0
+  saturation?: number; // 0.0 ~ 2.0, default 1.0
+}
+
+export interface CloudCropParams {
+  aliyunOss: string;
+  tencentCos: string;
+  qiniu: string;
+}
+
+export interface CropDataResult {
+  pixelCrop: AreaPixels;
+  percentCrop: AreaPercent;
+  rotation: number;
+  fineAngle: number;
+  totalRotation: number;
+  flip: Flip;
+  filter: CropFilterOptions;
+  cloudParams: CloudCropParams;
+}
+
 export interface TransformMatrix {
   a: number; // scaleX / cos
   b: number; // skewY / sin
@@ -53,7 +79,9 @@ export interface CropState {
   crop: Point;
   zoom: number;
   rotation: number;
+  fineAngle: number;
   flip: Flip;
+  filter: CropFilterOptions;
   cropSize: Size;
   mediaSize: Size;
 }
@@ -66,10 +94,13 @@ export interface ControllerOptions {
   maxZoom?: number;
   zoomSpeed?: number;
   restrictPosition?: boolean;
+  autoZoomOnRotate?: boolean;
   initialCrop?: Point;
   initialZoom?: number;
   initialRotation?: number;
+  initialFineAngle?: number;
   initialFlip?: Flip;
+  initialFilter?: CropFilterOptions;
 }
 
 export type ResizeHandle =

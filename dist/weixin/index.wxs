@@ -4,6 +4,7 @@ var state = {
   currentY: 0,
   scale: 1,
   rotation: 0,
+  fineAngle: 0,
   flipH: 1,
   flipV: 1,
 
@@ -70,7 +71,8 @@ function updateTransform(ownerInstance) {
 
   var sx = state.scale * state.flipH;
   var sy = state.scale * state.flipV;
-  var transform = 'translate3d(' + state.currentX + 'px, ' + state.currentY + 'px, 0) rotate(' + state.rotation + 'deg) scale(' + sx + ', ' + sy + ')';
+  var totalRotation = state.rotation + state.fineAngle;
+  var transform = 'translate3d(' + state.currentX + 'px, ' + state.currentY + 'px, 0) rotate(' + totalRotation + 'deg) scale(' + sx + ', ' + sy + ')';
 
   img.setStyle({
     transform: transform,
@@ -103,6 +105,8 @@ function initPinch(touches) {
 function onTouchStart(e, ownerInstance) {
   var touches = e.touches;
   if (!touches || touches.length === 0) return;
+
+  ownerInstance.callMethod('onWxsTouchStart');
 
   // 检查是否点中了 8 个选区调节锚点 (Mode B)
   var handle = e.target && e.target.dataset ? e.target.dataset.handle : null;
@@ -261,6 +265,7 @@ function onTouchEnd(e, ownerInstance) {
       width: state.cropW,
       height: state.cropH
     });
+    ownerInstance.callMethod('onWxsTouchEnd');
     return;
   }
 
@@ -275,6 +280,7 @@ function onTouchEnd(e, ownerInstance) {
       scale: state.scale,
       rotation: state.rotation
     });
+    ownerInstance.callMethod('onWxsTouchEnd');
   } else if (touches.length === 1) {
     state.isPinching = false;
     state.startX = touches[0].clientX - state.currentX;
@@ -286,6 +292,7 @@ function initProps(newVal, oldVal, ownerInstance) {
   if (!newVal) return;
   if (newVal.scale !== undefined) state.scale = newVal.scale;
   if (newVal.rotation !== undefined) state.rotation = newVal.rotation;
+  if (newVal.fineAngle !== undefined) state.fineAngle = newVal.fineAngle;
   if (newVal.x !== undefined) state.currentX = newVal.x;
   if (newVal.y !== undefined) state.currentY = newVal.y;
   if (newVal.flipH !== undefined) state.flipH = newVal.flipH ? -1 : 1;

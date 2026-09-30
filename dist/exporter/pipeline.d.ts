@@ -1,4 +1,4 @@
-import { AreaPixels, Flip, CropShape } from '../core';
+import { AreaPixels, Flip, CropShape, CropFilterOptions } from '../core';
 import { ICanvasDriver, ExportOptions, CropResult } from './drivers/types';
 export interface CropExecutionOptions {
     imageSrc: string;
@@ -6,6 +6,7 @@ export interface CropExecutionOptions {
     rotation?: number;
     flip?: Flip;
     cropShape?: CropShape;
+    filter?: CropFilterOptions;
     output?: ExportOptions;
     driver: ICanvasDriver;
 }

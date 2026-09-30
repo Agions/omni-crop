@@ -9,5 +9,6 @@ export declare class WebCanvasDriver implements ICanvasDriver {
     createOffscreenCanvas(width: number, height: number, dpr?: number): Promise<HTMLCanvasElement>;
     render(canvas: HTMLCanvasElement, params: RenderParams): Promise<void>;
     export(canvas: HTMLCanvasElement, options: ExportOptions): Promise<CropResult>;
+    destroy(): void;
 }
 //# sourceMappingURL=web.d.ts.map

@@ -129,4 +129,32 @@ describe('Exporter Pipeline & Drivers', () => {
     });
     assert.equal(res2.width, 100);
   });
+
+  it('propagates filter configuration into driver.render correctly', async () => {
+    const driver = new MockCanvasDriver();
+    const filter = { preset: 'vintage', brightness: 1.1, contrast: 1.05 };
+
+    await getCroppedImage({
+      imageSrc: 'test.jpg',
+      pixelCrop: { x: 0, y: 0, width: 200, height: 200 },
+      filter,
+      driver,
+    });
+
+    assert.equal(driver.renderCalls.length, 1);
+    assert.deepEqual(driver.renderCalls[0].params.filter, filter);
+  });
+
+  it('supports driver.destroy for memory lifecycle management', () => {
+    const { WechatCanvas2DDriver, WebCanvasDriver } = require('../../dist/exporter/index.js');
+    const wechatDriver = new WechatCanvas2DDriver();
+    const webDriver = new WebCanvasDriver();
+
+    assert.equal(typeof wechatDriver.destroy, 'function');
+    assert.equal(typeof webDriver.destroy, 'function');
+
+    // Should run safely without throwing
+    wechatDriver.destroy();
+    webDriver.destroy();
+  });
 });

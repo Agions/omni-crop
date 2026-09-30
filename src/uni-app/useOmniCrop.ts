@@ -5,6 +5,8 @@ import {
   AreaPercent,
   CropMode,
   CropShape,
+  CropFilterOptions,
+  CropDataResult,
   Point,
   Size,
 } from '../core';
@@ -22,12 +24,15 @@ export interface UseOmniCropOptions {
   cropShape?: CropShape;
   aspect?: number | 'free';
   restrictPosition?: boolean;
+  autoZoomOnRotate?: boolean;
+  fineAngle?: number;
   onCropChange?: (crop: Point) => void;
   onCropComplete?: (pixels: AreaPixels, percent: AreaPercent) => void;
 }
 
 export function useOmniCrop(options: UseOmniCropOptions) {
   const transformStyle = ref('');
+  const filterStyle = ref('');
   const cropBoxSize = reactive<Size>({ width: 0, height: 0 });
   const currentPixels = ref<AreaPixels | null>(null);
 
@@ -36,14 +41,18 @@ export function useOmniCrop(options: UseOmniCropOptions) {
     cropShape: options.cropShape,
     cropMode: options.cropMode,
     restrictPosition: options.restrictPosition,
+    autoZoomOnRotate: options.autoZoomOnRotate,
+    initialFineAngle: options.fineAngle,
   });
 
   let unbindChange: (() => void) | null = null;
   let unbindComplete: (() => void) | null = null;
+  let activeDriver: any = null;
 
   onMounted(() => {
     unbindChange = controller.on('change', (state) => {
       transformStyle.value = controller.getTransformStyle();
+      filterStyle.value = controller.getFilterStyle();
       options.onCropChange?.(state.crop);
     });
 
@@ -56,6 +65,10 @@ export function useOmniCrop(options: UseOmniCropOptions) {
   onUnmounted(() => {
     unbindChange?.();
     unbindComplete?.();
+    if (activeDriver && typeof activeDriver.destroy === 'function') {
+      activeDriver.destroy();
+      activeDriver = null;
+    }
   });
 
   const initDimensions = (containerSize: Size, naturalSize: Size) => {
@@ -64,11 +77,26 @@ export function useOmniCrop(options: UseOmniCropOptions) {
     cropBoxSize.width = state.cropSize.width;
     cropBoxSize.height = state.cropSize.height;
     transformStyle.value = controller.getTransformStyle();
+    filterStyle.value = controller.getFilterStyle();
   };
 
   const rotate = (step = 90) => {
     controller.rotate(step);
     transformStyle.value = controller.getTransformStyle();
+  };
+
+  const setFineAngle = (angle: number) => {
+    controller.setFineAngle(angle);
+    transformStyle.value = controller.getTransformStyle();
+  };
+
+  const setFilter = (filter: Partial<CropFilterOptions>) => {
+    controller.setFilter(filter);
+    filterStyle.value = controller.getFilterStyle();
+  };
+
+  const getCropData = (): CropDataResult => {
+    return controller.getCropData();
   };
 
   const flipHorizontal = () => {
@@ -84,6 +112,7 @@ export function useOmniCrop(options: UseOmniCropOptions) {
   const reset = () => {
     controller.reset();
     transformStyle.value = controller.getTransformStyle();
+    filterStyle.value = controller.getFilterStyle();
   };
 
   const exportCroppedImage = async (exportOpts?: ExportOptions): Promise<CropResult> => {
@@ -95,25 +124,33 @@ export function useOmniCrop(options: UseOmniCropOptions) {
     // Dynamically detect platform driver in uni-app
     // @ts-ignore
     const isWechat = typeof wx !== 'undefined' && typeof wx.createOffscreenCanvas === 'function';
-    const driver = isWechat ? new WechatCanvas2DDriver() : new WebCanvasDriver();
+    if (!activeDriver) {
+      activeDriver = isWechat ? new WechatCanvas2DDriver() : new WebCanvasDriver();
+    }
 
     return getCroppedImage({
       imageSrc: options.image,
       pixelCrop: currentPixels.value,
-      rotation: state.rotation,
+      rotation: controller.getTotalRotation(),
       flip: state.flip,
+      cropShape: options.cropShape,
+      filter: state.filter,
       output: exportOpts,
-      driver,
+      driver: activeDriver,
     });
   };
 
   return {
     controller,
     transformStyle,
+    filterStyle,
     cropBoxSize,
     currentPixels,
     initDimensions,
     rotate,
+    setFineAngle,
+    setFilter,
+    getCropData,
     flipHorizontal,
     flipVertical,
     reset,

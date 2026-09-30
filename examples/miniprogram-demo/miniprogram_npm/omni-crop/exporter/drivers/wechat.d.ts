@@ -12,5 +12,6 @@ export declare class WechatCanvas2DDriver implements ICanvasDriver {
     createOffscreenCanvas(width: number, height: number, dpr?: number): Promise<any>;
     render(canvas: any, params: RenderParams): Promise<void>;
     export(canvas: any, options: ExportOptions): Promise<CropResult>;
+    destroy(): void;
 }
 //# sourceMappingURL=wechat.d.ts.map

@@ -8,6 +8,11 @@ export declare function degreeToRadian(deg: number): number;
  */
 export declare function getRotatedSize(width: number, height: number, rotation: number): Size;
 /**
+ * Computes minimum zoom required to ensure rotated media fully covers crop size
+ * without exposing transparent or empty borders (Smart Auto-Zoom Bounding)
+ */
+export declare function getAutoZoomRatio(cropSize: Size, mediaSize: Size, angle: number): number;
+/**
  * Computes default crop container size given container dimensions and aspect ratio
  */
 export declare function getInitialCropSize(containerWidth: number, containerHeight: number, aspect: number | 'free'): Size;

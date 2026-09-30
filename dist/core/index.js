@@ -19,5 +19,6 @@ __exportStar(require("./matrix/affine"), exports);
 __exportStar(require("./boundary/restrict"), exports);
 __exportStar(require("./gestures/drag"), exports);
 __exportStar(require("./gestures/pinch"), exports);
+__exportStar(require("./filter/presets"), exports);
 __exportStar(require("./controller"), exports);
 //# sourceMappingURL=index.js.map

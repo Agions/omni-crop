@@ -6,6 +6,8 @@ import {
   Flip,
   CropMode,
   CropShape,
+  CropFilterOptions,
+  CropDataResult,
   ControllerOptions,
   CropState,
   ResizeHandle,
@@ -14,6 +16,7 @@ import {
   getInitialCropSize,
   getMediaBaseSize,
   computeCropArea,
+  getAutoZoomRatio,
 } from './matrix/affine';
 import {
   getCropBoundaries,
@@ -21,6 +24,7 @@ import {
   getMinZoom,
   resizeCropBox,
 } from './boundary/restrict';
+import { getFilterCss } from './filter/presets';
 
 export type ChangeCallback = (state: CropState) => void;
 export type CompleteCallback = (
@@ -39,6 +43,13 @@ export class OmniCropController {
   private completeListeners: Set<CompleteCallback> = new Set();
 
   constructor(options: ControllerOptions = {}) {
+    const defaultFilter: CropFilterOptions = {
+      preset: 'normal',
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+    };
+
     this.options = {
       cropMode: options.cropMode || 'transform-media',
       cropShape: options.cropShape || 'rect',
@@ -48,17 +59,23 @@ export class OmniCropController {
       zoomSpeed: options.zoomSpeed || 1,
       restrictPosition:
         options.restrictPosition !== undefined ? options.restrictPosition : true,
+      autoZoomOnRotate:
+        options.autoZoomOnRotate !== undefined ? options.autoZoomOnRotate : true,
       initialCrop: options.initialCrop || { x: 0, y: 0 },
       initialZoom: options.initialZoom || 1,
       initialRotation: options.initialRotation || 0,
+      initialFineAngle: options.initialFineAngle || 0,
       initialFlip: options.initialFlip || { horizontal: false, vertical: false },
+      initialFilter: options.initialFilter || defaultFilter,
     };
 
     this.state = {
       crop: { ...this.options.initialCrop },
       zoom: this.options.initialZoom,
       rotation: this.options.initialRotation,
+      fineAngle: this.options.initialFineAngle,
       flip: { ...this.options.initialFlip },
+      filter: { ...this.options.initialFilter },
       cropSize: { width: 0, height: 0 },
       mediaSize: { width: 0, height: 0 },
     };
@@ -89,10 +106,10 @@ export class OmniCropController {
 
     // 3. Ensure minimum zoom covers crop box if restricted
     if (this.options.restrictPosition) {
-      const minRequired = getMinZoom(
+      const minRequired = getAutoZoomRatio(
         this.state.cropSize,
         this.state.mediaSize,
-        this.state.rotation
+        this.getTotalRotation()
       );
       this.options.minZoom = Math.max(this.options.minZoom, minRequired);
       if (this.state.zoom < this.options.minZoom) {
@@ -102,6 +119,11 @@ export class OmniCropController {
 
     this.clampAndNotify();
     this.notifyComplete();
+  }
+
+  public getTotalRotation(): number {
+    const rot = (this.state.rotation + this.state.fineAngle) % 360;
+    return rot >= 0 ? rot : rot + 360;
   }
 
   public setCrop(crop: Point): void {
@@ -116,7 +138,51 @@ export class OmniCropController {
 
   public setRotation(rotation: number): void {
     this.state.rotation = (rotation % 360 + 360) % 360;
+    if (this.options.autoZoomOnRotate && this.state.cropSize.width > 0) {
+      const minZoom = getAutoZoomRatio(
+        this.state.cropSize,
+        this.state.mediaSize,
+        this.getTotalRotation()
+      );
+      if (this.state.zoom < minZoom) {
+        this.state.zoom = Number(minZoom.toFixed(4));
+      }
+    }
     this.clampAndNotify();
+  }
+
+  public setFineAngle(angle: number): void {
+    let clamped = Math.max(-45, Math.min(45, angle));
+    if (Math.abs(clamped) < 1.0) {
+      clamped = 0;
+    }
+    this.state.fineAngle = Number(clamped.toFixed(2));
+
+    if (this.options.autoZoomOnRotate && this.state.cropSize.width > 0) {
+      const minZoom = getAutoZoomRatio(
+        this.state.cropSize,
+        this.state.mediaSize,
+        this.getTotalRotation()
+      );
+      if (this.state.zoom < minZoom) {
+        this.state.zoom = Number(minZoom.toFixed(4));
+      }
+    }
+
+    this.clampAndNotify();
+    this.notifyComplete();
+  }
+
+  public setFilter(filter: Partial<CropFilterOptions>): void {
+    this.state.filter = {
+      ...this.state.filter,
+      ...filter,
+    };
+    this.clampAndNotify();
+  }
+
+  public getFilterStyle(): string {
+    return getFilterCss(this.state.filter);
   }
 
   public rotate(stepAngle = 90): void {
@@ -140,7 +206,9 @@ export class OmniCropController {
     this.state.crop = { ...this.options.initialCrop };
     this.state.zoom = this.options.initialZoom;
     this.state.rotation = this.options.initialRotation;
+    this.state.fineAngle = this.options.initialFineAngle;
     this.state.flip = { ...this.options.initialFlip };
+    this.state.filter = { ...this.options.initialFilter };
     this.clampAndNotify();
     this.notifyComplete();
   }
@@ -212,10 +280,11 @@ export class OmniCropController {
    * Generates CSS/WXS transformation string
    */
   public getTransformStyle(): string {
-    const { crop, zoom, rotation, flip } = this.state;
+    const { crop, zoom, flip } = this.state;
+    const totalRotation = this.state.rotation + this.state.fineAngle;
     const scaleX = (flip.horizontal ? -1 : 1) * zoom;
     const scaleY = (flip.vertical ? -1 : 1) * zoom;
-    return `translate3d(${crop.x}px, ${crop.y}px, 0) rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`;
+    return `translate3d(${crop.x}px, ${crop.y}px, 0) rotate(${totalRotation}deg) scale(${scaleX}, ${scaleY})`;
   }
 
   /**
@@ -229,11 +298,37 @@ export class OmniCropController {
       this.state.crop,
       this.state.cropSize,
       this.state.zoom,
-      this.state.rotation,
+      this.getTotalRotation(),
       this.state.flip,
       this.naturalMediaSize,
       this.renderedMediaSize
     );
+  }
+
+  /**
+   * Returns complete crop parameters including pixel/percent coordinates and CDN query params
+   */
+  public getCropData(): CropDataResult {
+    const { croppedAreaPixels, croppedAreaPercentages } = this.computeResult();
+    const safeX = Math.max(0, croppedAreaPixels.x);
+    const safeY = Math.max(0, croppedAreaPixels.y);
+    const w = Math.max(1, croppedAreaPixels.width);
+    const h = Math.max(1, croppedAreaPixels.height);
+
+    return {
+      pixelCrop: { ...croppedAreaPixels },
+      percentCrop: { ...croppedAreaPercentages },
+      rotation: this.state.rotation,
+      fineAngle: this.state.fineAngle,
+      totalRotation: Number(((this.state.rotation + this.state.fineAngle) % 360).toFixed(2)),
+      flip: { ...this.state.flip },
+      filter: { ...this.state.filter },
+      cloudParams: {
+        aliyunOss: `?x-oss-process=image/crop,x_${safeX},y_${safeY},w_${w},h_${h}`,
+        tencentCos: `?imageMogr2/cut/${w}x${h}x${safeX}x${safeY}`,
+        qiniu: `?imageMogr2/crop/!${w}x${h}a${safeX}a${safeY}`,
+      },
+    };
   }
 
   public notifyComplete(): void {
@@ -260,7 +355,7 @@ export class OmniCropController {
       const bounds = getCropBoundaries(
         this.state.cropSize,
         this.state.mediaSize,
-        this.state.rotation,
+        this.getTotalRotation(),
         this.state.zoom
       );
       this.state.crop = clampPosition(this.state.crop, bounds);

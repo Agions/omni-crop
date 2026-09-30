@@ -360,6 +360,18 @@ pnpm add omni-crop</code></pre>
               </div>
             </div>
 
+            <!-- Fine Angle Ruler Bar -->
+            <div class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-4 py-2 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 text-xs">
+              <span class="text-zinc-500 font-medium">角度微调标尺:</span>
+              <div class="flex-1 mx-3 flex items-center">
+                <span class="text-[10px] text-zinc-400 mr-2">-45°</span>
+                <input type="range" id="demo-angle-slider" min="-45" max="45" step="0.5" value="0" class="w-full h-3 cursor-pointer" oninput="demoOnAngleSlider(this.value)" />
+                <span class="text-[10px] text-zinc-400 ml-2">+45°</span>
+              </div>
+              <span id="demo-angle-val" class="font-mono text-blue-500 font-bold min-w-16 text-right">0.0°</span>
+              <button onclick="demoResetAngle()" class="ml-2 px-2 py-0.5 text-[11px] bg-zinc-200 dark:bg-zinc-800 rounded hover:bg-zinc-300 dark:hover:bg-zinc-700">0°校平</button>
+            </div>
+
             <!-- Zoom Slider Bar Matching Screenshot -->
             <div class="bg-white text-zinc-800 px-4 py-2.5 flex items-center justify-between border-t border-zinc-200">
               <button onclick="demoStepZoom(-0.2)" class="w-7 h-7 flex items-center justify-center text-xl font-light text-zinc-500 hover:text-zinc-900 cursor-pointer select-none">–</button>
@@ -375,7 +387,7 @@ pnpm add omni-crop</code></pre>
           </div>
 
           <!-- Studio Toolbar & Output -->
-          <div class="lg:col-span-4 space-y-3.5 text-xs">
+          <div class="lg:col-span-4 space-y-3 text-xs">
             <!-- Mode Selector -->
             <div class="space-y-1">
               <span class="font-semibold text-zinc-700 dark:text-zinc-300">交互模式</span>
@@ -393,47 +405,68 @@ pnpm add omni-crop</code></pre>
                 <button id="btn-shape-round" onclick="demoSetShape('round')" class="demo-shape-btn py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">圆形头像</button>
               </div>
             </div>
+
+            <!-- Filters Palette -->
             <div class="space-y-1">
-              <span class="font-semibold text-zinc-700 dark:text-zinc-300">测试图片</span>
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="demoLoadImage('nature')" class="py-1.5 px-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-center font-medium">自然测试图</button>
-                <button onclick="demoLoadImage('avatar')" class="py-1.5 px-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-center font-medium">头像测试图</button>
+              <span class="font-semibold text-zinc-700 dark:text-zinc-300">实时滤镜调色 (GPU 60FPS)</span>
+              <div class="grid grid-cols-3 gap-1">
+                <button onclick="demoSetFilter('normal', this)" class="demo-filter-btn py-1 px-1 rounded bg-blue-600 text-white font-medium text-center">原图</button>
+                <button onclick="demoSetFilter('bw', this)" class="demo-filter-btn py-1 px-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium text-center">黑白</button>
+                <button onclick="demoSetFilter('vintage', this)" class="demo-filter-btn py-1 px-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium text-center">胶片</button>
+                <button onclick="demoSetFilter('vivid', this)" class="demo-filter-btn py-1 px-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium text-center">鲜艳</button>
+                <button onclick="demoSetFilter('cool', this)" class="demo-filter-btn py-1 px-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium text-center">冷调</button>
+                <button onclick="demoSetFilter('warm', this)" class="demo-filter-btn py-1 px-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium text-center">暖色</button>
               </div>
             </div>
 
+            <!-- Aspect Ratio Selector -->
             <div class="space-y-1">
               <span class="font-semibold text-zinc-700 dark:text-zinc-300">裁剪比例</span>
-              <div class="grid grid-cols-4 gap-1.5">
+              <div class="grid grid-cols-4 gap-1">
                 <button onclick="demoSetAspect(1, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">1:1</button>
                 <button onclick="demoSetAspect(4/3, this)" class="demo-aspect-btn py-1 rounded bg-blue-600 text-white font-medium">4:3</button>
                 <button onclick="demoSetAspect(16/9, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">16:9</button>
+                <button onclick="demoSetAspect(4/5, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">4:5</button>
+                <button onclick="demoSetAspect(9/16, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">9:16</button>
+                <button onclick="demoSetAspect(3/2, this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">3:2</button>
                 <button onclick="demoSetAspect('free', this)" class="demo-aspect-btn py-1 rounded bg-zinc-200 dark:bg-zinc-800 font-medium">自由</button>
               </div>
             </div>
 
+            <!-- Operations -->
             <div class="space-y-1">
               <span class="font-semibold text-zinc-700 dark:text-zinc-300">几何操作</span>
               <div class="grid grid-cols-3 gap-1.5">
                 <button onclick="demoRotate()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">🔄 90°</button>
-                <button onclick="demoFlipH()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">↔️ 翻转</button>
-                <button onclick="demoFlipV()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">↕️ 翻转</button>
+                <button onclick="demoFlipH()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">↔️ 水平</button>
+                <button onclick="demoFlipV()" class="py-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800">↕️ 垂直</button>
               </div>
             </div>
 
-            <div class="pt-2">
-              <button onclick="demoExport()" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 transition">
-                ✂️ 执行裁剪生成图片
+            <div class="pt-1 flex gap-2">
+              <button onclick="demoExport()" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 transition">
+                ✂️ 执行导出图片
+              </button>
+              <button onclick="demoShowCloudParams()" class="py-2 px-3 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-medium">
+                ☁️ 云裁剪参
               </button>
             </div>
 
-            <div class="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 space-y-1.5">
+            <div class="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 space-y-1">
               <div class="flex justify-between items-center">
                 <span class="font-semibold text-[11px] text-zinc-600 dark:text-zinc-400">导出预览</span>
                 <span id="demo-export-size" class="text-[10px] font-mono text-zinc-500">- × - px</span>
               </div>
-              <div class="w-full h-24 bg-zinc-950 rounded flex items-center justify-center overflow-hidden border border-zinc-800">
+              <div class="w-full h-20 bg-zinc-950 rounded flex items-center justify-center overflow-hidden border border-zinc-800">
                 <img id="demo-export-img" src="" alt="导出结果" class="max-h-full max-w-full object-contain" />
               </div>
+            </div>
+
+            <!-- Cloud Params Output Card (Toggled) -->
+            <div id="demo-cloud-box" class="hidden p-2 rounded-lg border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 space-y-1 text-[10px] font-mono">
+              <div class="text-blue-500 font-bold">☁️ 0ms 纯数学选区 & CDN 参数:</div>
+              <div id="demo-cloud-oss" class="text-zinc-600 dark:text-zinc-400 break-all select-all"></div>
+              <div id="demo-cloud-cos" class="text-zinc-600 dark:text-zinc-400 break-all select-all"></div>
             </div>
           </div>
         </div>
@@ -492,7 +525,7 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-bold text-blue-500">aspect</td>
                 <td class="p-3">number | 'free'</td>
                 <td class="p-3">4 / 3</td>
-                <td class="p-3 font-sans">裁剪比例（如 1、4/3、16/9），传入 'free' 为自由比例</td>
+                <td class="p-3 font-sans">裁剪比例（如 1、4/3、16/9、4/5、9/16、3/2），传入 'free' 为自由比例</td>
               </tr>
               <tr>
                 <td class="p-3 font-bold text-blue-500">cropShape</td>
@@ -502,9 +535,27 @@ pnpm add omni-crop</code></pre>
               </tr>
               <tr>
                 <td class="p-3 font-bold text-blue-500">showGrid</td>
+                <td class="p-3">boolean | 'touch'</td>
+                <td class="p-3">true</td>
+                <td class="p-3 font-sans">辅助网格：true 常驻；'touch' 触碰平滑浮现、松手自动淡出保持纯净视野；false 隐藏</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">autoZoomOnRotate</td>
                 <td class="p-3">boolean</td>
                 <td class="p-3">true</td>
-                <td class="p-3 font-sans">是否展示九宫格辅助网格线</td>
+                <td class="p-3 font-sans">防露白智能自适应缩放：微调角度时自动计算最小安全外接投影尺寸并平滑充满</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">enableHaptic</td>
+                <td class="p-3">boolean</td>
+                <td class="p-3">true</td>
+                <td class="p-3 font-sans">微信触感震动反馈：在 0° 刻度校平磁吸与 90° 旋转时调用 wx.vibrateShort 轻微震动</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-blue-500">fineAngle</td>
+                <td class="p-3">number</td>
+                <td class="p-3">0</td>
+                <td class="p-3 font-sans">角度微调初值（-45° ~ +45°），可与标尺 Slider 双向绑定</td>
               </tr>
               <tr>
                 <td class="p-3 font-bold text-blue-500">restrictPosition</td>
@@ -544,6 +595,16 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-sans">图片缩放倍率变化时触发（可与外部 Slider 滑块实时同步）</td>
               </tr>
               <tr>
+                <td class="p-3 font-bold text-amber-500">bindfineanglechange</td>
+                <td class="p-3">{ fineAngle, totalRotation }</td>
+                <td class="p-3 font-sans">标尺角度微调时触发，包含当前微调角度及累计总旋转角度</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-amber-500">bindfilterchange</td>
+                <td class="p-3">{ filter }</td>
+                <td class="p-3 font-sans">实时滤镜调色变更时触发</td>
+              </tr>
+              <tr>
                 <td class="p-3 font-bold text-amber-500">bindcropchange</td>
                 <td class="p-3">{ x, y }</td>
                 <td class="p-3 font-sans">图片平移物理位移变动时触发</td>
@@ -581,6 +642,24 @@ pnpm add omni-crop</code></pre>
             </thead>
             <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950/60 text-zinc-700 dark:text-zinc-300 font-mono">
               <tr>
+                <td class="p-3 font-bold text-emerald-500">setFineAngle(angle)</td>
+                <td class="p-3">number (-45 ~ +45)</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">角度微调与地平线校平，带 0° 智能磁吸与动态最小安全充满自动缩放</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">setFilter(filter)</td>
+                <td class="p-3">CropFilterOptions</td>
+                <td class="p-3">void</td>
+                <td class="p-3 font-sans">应用双层实时滤镜（视图层 GPU CSS 零开销预览 + 导出层 Canvas 2D 1:1 着色对齐）</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-emerald-500">getCropData()</td>
+                <td class="p-3">-</td>
+                <td class="p-3">CropDataResult</td>
+                <td class="p-3 font-sans">0ms 纯数学坐标导出（无需 Canvas 显存），并返回阿里云 OSS、腾讯云 COS、七牛云裁剪指令</td>
+              </tr>
+              <tr>
                 <td class="p-3 font-bold text-emerald-500">setCropMode(mode)</td>
                 <td class="p-3">'transform-media' | 'resize-box'</td>
                 <td class="p-3">void</td>
@@ -596,7 +675,7 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-bold text-emerald-500">rotate(stepAngle)</td>
                 <td class="p-3">number = 90</td>
                 <td class="p-3">void</td>
-                <td class="p-3 font-sans">顺时针旋转指定角度</td>
+                <td class="p-3 font-sans">顺时针旋转指定角度（支持震动反馈）</td>
               </tr>
               <tr>
                 <td class="p-3 font-bold text-emerald-500">zoomIn(step)</td>
@@ -638,7 +717,7 @@ pnpm add omni-crop</code></pre>
                 <td class="p-3 font-bold text-emerald-500">exportCroppedImage(opts)</td>
                 <td class="p-3">ExportOptions</td>
                 <td class="p-3">Promise&lt;CropResult&gt;</td>
-                <td class="p-3 font-sans">通过 Canvas 2D 离屏导出裁切图片路径（带并发防重锁与防 OOM 自适应）</td>
+                <td class="p-3 font-sans">通过 Canvas 2D 离屏导出裁切图片路径（带滤镜调色渲染、并发防重锁与防 OOM 自适应）</td>
               </tr>
             </tbody>
           </table>
@@ -785,8 +864,11 @@ Page({
       crop: { x: 0, y: 0 },
       zoom: 1.0,
       rotation: 0,
+      fineAngle: 0,
       flipH: 1,
       flipV: 1,
+      filter: 'normal',
+      filterCss: 'none',
       aspect: 4 / 3,
       cropMode: 'transform-media',
       shape: 'rect',
@@ -801,6 +883,15 @@ Page({
       handleStartY: 0,
       boxStartW: 0,
       boxStartH: 0,
+    };
+
+    const FILTER_PRESETS = {
+      normal: 'none',
+      bw: 'grayscale(100%) contrast(1.1)',
+      vintage: 'sepia(60%) contrast(0.95) brightness(0.95) saturate(1.2)',
+      vivid: 'saturate(1.4) contrast(1.15) brightness(1.05)',
+      cool: 'sepia(15%) hue-rotate(180deg) saturate(1.15)',
+      warm: 'sepia(30%) saturate(1.3) brightness(1.05)',
     };
 
     function createSampleDataURL(text, bg1, bg2) {
@@ -838,6 +929,11 @@ Page({
     const demoHandlesLayer = document.getElementById('demo-handles-layer');
     const demoSlider = document.getElementById('demo-slider');
     const demoInfo = document.getElementById('demo-info');
+    const demoAngleSlider = document.getElementById('demo-angle-slider');
+    const demoAngleVal = document.getElementById('demo-angle-val');
+    const demoCloudBox = document.getElementById('demo-cloud-box');
+    const demoCloudOss = document.getElementById('demo-cloud-oss');
+    const demoCloudCos = document.getElementById('demo-cloud-cos');
 
     function demoSetMode(mode) {
       demoState.cropMode = mode;
@@ -871,6 +967,54 @@ Page({
       }
     }
 
+    function demoSetFilter(key, btn) {
+      demoState.filter = key;
+      demoState.filterCss = FILTER_PRESETS[key] || 'none';
+      document.querySelectorAll('.demo-filter-btn').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.add('bg-zinc-200', 'dark:bg-zinc-800');
+      });
+      if (btn) {
+        btn.classList.add('bg-blue-600', 'text-white');
+        btn.classList.remove('bg-zinc-200', 'dark:bg-zinc-800');
+      }
+      demoRender();
+    }
+
+    function demoOnAngleSlider(val) {
+      let angle = parseFloat(val);
+      if (Math.abs(angle) < 1.0) angle = 0;
+      demoState.fineAngle = angle;
+
+      // Smart auto-zoom bounding calculation
+      const rad = Math.abs((demoState.rotation + angle) * Math.PI / 180);
+      const cos = Math.abs(Math.cos(rad));
+      const sin = Math.abs(Math.sin(rad));
+      const projW = demoState.cropW * cos + demoState.cropH * sin;
+      const projH = demoState.cropW * sin + demoState.cropH * cos;
+      const minZoom = Math.max(projW / (demoState.cropW || 1), projH / (demoState.cropH || 1), 1.0);
+      if (demoState.zoom < minZoom) {
+        demoState.zoom = Math.min(4.0, Number(minZoom.toFixed(2)));
+      }
+      demoRender();
+    }
+
+    function demoResetAngle() {
+      demoState.fineAngle = 0;
+      demoRender();
+    }
+
+    function demoShowCloudParams() {
+      const w = Math.round(demoState.cropW * 2);
+      const h = Math.round(demoState.cropH * 2);
+      const x = Math.max(0, Math.round(400 - w / 2 + demoState.crop.x));
+      const y = Math.max(0, Math.round(300 - h / 2 + demoState.crop.y));
+
+      demoCloudOss.textContent = `阿里云: ?x-oss-process=image/crop,x_${x},y_${y},w_${w},h_${h}`;
+      demoCloudCos.textContent = `腾讯云: ?imageMogr2/cut/${w}x${h}x${x}x${y}`;
+      demoCloudBox.classList.toggle('hidden');
+    }
+
     function demoUpdateBox() {
       const cw = demoCropper.clientWidth || 500;
       const ch = demoCropper.clientHeight || 360;
@@ -897,9 +1041,13 @@ Page({
     function demoRender() {
       const sx = demoState.zoom * demoState.flipH;
       const sy = demoState.zoom * demoState.flipV;
-      demoImg.style.transform = `translate3d(${demoState.crop.x}px, ${demoState.crop.y}px, 0) rotate(${demoState.rotation}deg) scale(${sx}, ${sy})`;
-      demoInfo.textContent = `缩放: ${demoState.zoom.toFixed(2)}x · 旋转: ${demoState.rotation}° · 选区: ${demoState.cropW}×${demoState.cropH}`;
+      const totalRot = demoState.rotation + demoState.fineAngle;
+      demoImg.style.transform = `translate3d(${demoState.crop.x}px, ${demoState.crop.y}px, 0) rotate(${totalRot}deg) scale(${sx}, ${sy})`;
+      demoImg.style.filter = demoState.filterCss;
+      demoInfo.textContent = `微调: ${demoState.fineAngle.toFixed(1)}° · 缩放: ${demoState.zoom.toFixed(2)}x · 旋转: ${demoState.rotation}° · 滤镜: ${demoState.filter}`;
       demoSlider.value = demoState.zoom;
+      if (demoAngleSlider) demoAngleSlider.value = demoState.fineAngle;
+      if (demoAngleVal) demoAngleVal.textContent = (demoState.fineAngle === 0 ? '0.0°' : (demoState.fineAngle > 0 ? '+' + demoState.fineAngle.toFixed(1) + '°' : demoState.fineAngle.toFixed(1) + '°'));
     }
 
     function demoLoadImage(key) {
@@ -913,8 +1061,10 @@ Page({
       demoState.crop = { x: 0, y: 0 };
       demoState.zoom = 1.0;
       demoState.rotation = 0;
+      demoState.fineAngle = 0;
       demoState.flipH = 1;
       demoState.flipV = 1;
+      demoSetFilter('normal', document.querySelector('.demo-filter-btn'));
       demoRender();
     }
 
@@ -1073,7 +1223,7 @@ Page({
       demoRender();
     }, { passive: false });
 
-    // Export execution (Canvas 2D with circular clip support)
+    // Export execution (Canvas 2D with circular clip and filter support)
     function demoExport() {
       const c = document.createElement('canvas');
       const ctx = c.getContext('2d');
@@ -1082,6 +1232,11 @@ Page({
       c.width = w; c.height = h;
 
       ctx.save();
+
+      // Filter rendering
+      if (demoState.filterCss && demoState.filterCss !== 'none') {
+        ctx.filter = demoState.filterCss;
+      }
 
       // 圆形头像真抗锯齿裁剪
       if (demoState.shape === 'round') {
@@ -1093,7 +1248,8 @@ Page({
       }
 
       ctx.translate(w / 2, h / 2);
-      if (demoState.rotation !== 0) ctx.rotate((demoState.rotation * Math.PI) / 180);
+      const totalRot = demoState.rotation + demoState.fineAngle;
+      if (totalRot !== 0) ctx.rotate((totalRot * Math.PI) / 180);
       ctx.scale(demoState.flipH, demoState.flipV);
 
       const renderW = demoState.cropW * demoState.zoom * 2;
@@ -1106,7 +1262,7 @@ Page({
 
       const url = c.toDataURL('image/png');
       document.getElementById('demo-export-img').src = url;
-      document.getElementById('demo-export-size').textContent = `${w} × ${h} px (${demoState.shape === 'round' ? '圆形透明' : '矩形'})`;
+      document.getElementById('demo-export-size').textContent = `${w} × ${h} px (${demoState.filter}, ${demoState.shape === 'round' ? '圆形透明' : '矩形'})`;
     }
 
     // Init

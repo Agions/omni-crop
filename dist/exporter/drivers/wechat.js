@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WechatCanvas2DDriver = void 0;
+const core_1 = require("../../core");
 class WechatCanvas2DDriver {
     constructor() {
         this.name = 'wechat-canvas-2d';
@@ -56,7 +57,7 @@ class WechatCanvas2DDriver {
     }
     async render(canvas, params) {
         const ctx = canvas.getContext('2d');
-        const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight } = params;
+        const { imageSource, pixelCrop, rotation, flip, cropShape, outputWidth, outputHeight, filter } = params;
         return new Promise((resolve, reject) => {
             const img = canvas.createImage();
             img.onload = () => {
@@ -78,9 +79,31 @@ class WechatCanvas2DDriver {
                 }
                 // Apply flip
                 ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
+                // Apply filter if supported by 2D canvas context
+                let filterApplied = false;
+                if (filter) {
+                    const cssFilter = (0, core_1.getFilterCss)(filter);
+                    if (cssFilter !== 'none' && typeof ctx.filter === 'string') {
+                        ctx.filter = cssFilter;
+                        filterApplied = true;
+                    }
+                }
                 // Draw cropped portion
                 ctx.drawImage(img, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, -outputWidth / 2, -outputHeight / 2, outputWidth, outputHeight);
                 ctx.restore();
+                // If ctx.filter was not supported and filter is specified, fallback to getImageData
+                if (filter && !filterApplied) {
+                    try {
+                        const imgData = ctx.getImageData(0, 0, outputWidth, outputHeight);
+                        if (imgData && imgData.data) {
+                            (0, core_1.applyFilterToImageData)(imgData.data, outputWidth, outputHeight, filter);
+                            ctx.putImageData(imgData, 0, 0);
+                        }
+                    }
+                    catch (_e) {
+                        // Context may disallow getImageData in certain sandbox modes
+                    }
+                }
                 resolve();
             };
             img.onerror = reject;
@@ -105,6 +128,9 @@ class WechatCanvas2DDriver {
                 fail: reject,
             });
         });
+    }
+    destroy() {
+        // Explicit cleanup for memory lifecycle governance
     }
 }
 exports.WechatCanvas2DDriver = WechatCanvas2DDriver;

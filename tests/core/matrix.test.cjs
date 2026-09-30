@@ -111,4 +111,21 @@ describe('Matrix & Geometry Calculations', () => {
     const next = springStep(100, 200, 0.2);
     assert.strictEqual(next, 120);
   });
+
+  it('getAutoZoomRatio calculates bounding scale for arbitrary angles', () => {
+    const { getAutoZoomRatio } = require('../../dist/core/index.js');
+    const cropSize = { width: 300, height: 300 };
+    const mediaSize = { width: 300, height: 300 };
+
+    // At 0 deg, ratio is 1.0
+    assert.strictEqual(getAutoZoomRatio(cropSize, mediaSize, 0), 1);
+
+    // At 45 deg, diagonal projection is width * sqrt(2)
+    const ratio45 = getAutoZoomRatio(cropSize, mediaSize, 45);
+    assert.ok(Math.abs(ratio45 - Math.SQRT2) < 1e-4);
+
+    // At 90 deg for square, ratio is 1.0
+    const ratio90 = getAutoZoomRatio(cropSize, mediaSize, 90);
+    assert.ok(Math.abs(ratio90 - 1.0) < 1e-4);
+  });
 });

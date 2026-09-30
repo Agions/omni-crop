@@ -1,7 +1,7 @@
 <view class="demo-page">
   <!-- 顶部信息栏与图片选择 -->
   <view class="header-bar">
-    <view class="header-title">OmniCrop 演示</view>
+    <view class="header-title">OmniCrop 2.0 旗舰演示</view>
     <view class="header-actions">
       <button class="btn-sub" size="mini" bindtap="chooseImage">相册/拍照</button>
       <button class="btn-sub" size="mini" bindtap="useSampleImage">示例图</button>
@@ -18,13 +18,44 @@
       aspect="{{currentAspect}}"
       showGrid="{{showGrid}}"
       restrictPosition="{{restrictPosition}}"
+      autoZoomOnRotate="{{autoZoomOnRotate}}"
+      enableHaptic="{{enableHaptic}}"
       bindcropcomplete="onCropComplete"
       bindzoomchange="onZoomChange"
+      bindfineanglechange="onFineAngleChange"
       binderror="onCropError"
     />
   </view>
 
-  <!-- 缩放滑动控制条 (与用户指定样式 100% 对齐) -->
+  <!-- 角度微调标尺 (Smart Auto-Zoom + 0°磁吸) -->
+  <view class="fine-angle-bar">
+    <view class="angle-header">
+      <text class="angle-label">微调标尺 (防露白自适应充满)</text>
+      <text class="angle-badge {{currentFineAngle === 0 ? 'snap-active' : ''}}">
+        {{currentFineAngle === 0 ? '0.0° (已校平)' : (currentFineAngle > 0 ? '+' + currentFineAngle + '°' : currentFineAngle + '°')}}
+      </text>
+    </view>
+    <view class="angle-slider-container">
+      <text class="angle-limit">-45°</text>
+      <slider
+        class="angle-slider"
+        min="-45"
+        max="45"
+        step="0.5"
+        value="{{currentFineAngle}}"
+        activeColor="#3b82f6"
+        backgroundColor="#3f3f46"
+        block-color="#ffffff"
+        block-size="16"
+        bindchanging="onFineAngleSliderChanging"
+        bindchange="onFineAngleSliderChange"
+      />
+      <text class="angle-limit">+45°</text>
+      <view class="angle-reset-btn" bindtap="handleResetAngle">0°</view>
+    </view>
+  </view>
+
+  <!-- 缩放控制条 -->
   <view class="zoom-slider-bar">
     <text class="zoom-symbol" bindtap="handleZoomOut">–</text>
     <view class="slider-track-box">
@@ -50,8 +81,8 @@
   </view>
 
   <!-- 底部操作控制面板 -->
-  <view class="control-panel">
-    <!-- 交互模式选择 (底图变换 / 8 锚点选区拉伸) -->
+  <scroll-view class="control-panel" scroll-y enable-passive>
+    <!-- 交互模式选择 -->
     <view class="control-group">
       <view class="group-label">模式</view>
       <view class="btn-group">
@@ -72,10 +103,10 @@
       </view>
     </view>
 
-    <!-- 比例选择 -->
+    <!-- 社交多画幅比例 -->
     <view class="control-group">
       <view class="group-label">比例</view>
-      <view class="btn-group">
+      <view class="btn-group wrap-group">
         <view
           wx:for="{{aspectList}}"
           wx:key="name"
@@ -88,7 +119,7 @@
       </view>
     </view>
 
-    <!-- 形状切换 -->
+    <!-- 形状切换与辅助网格 -->
     <view class="control-group">
       <view class="group-label">形状</view>
       <view class="btn-group">
@@ -109,7 +140,51 @@
       </view>
     </view>
 
-    <!-- 几何变换快捷工具栏 -->
+    <!-- 辅助线模式 -->
+    <view class="control-group">
+      <view class="group-label">网格</view>
+      <view class="btn-group">
+        <view
+          class="pill-btn {{showGrid === true ? 'active' : ''}}"
+          data-grid="always"
+          bindtap="onSelectGrid"
+        >
+          常驻网格
+        </view>
+        <view
+          class="pill-btn {{showGrid === 'touch' ? 'active' : ''}}"
+          data-grid="touch"
+          bindtap="onSelectGrid"
+        >
+          触碰浮现 (touch)
+        </view>
+        <view
+          class="pill-btn {{showGrid === false ? 'active' : ''}}"
+          data-grid="none"
+          bindtap="onSelectGrid"
+        >
+          隐藏
+        </view>
+      </view>
+    </view>
+
+    <!-- GPU 双层实时调色滤镜 -->
+    <view class="control-group">
+      <view class="group-label">滤镜</view>
+      <view class="btn-group wrap-group">
+        <view
+          wx:for="{{filterList}}"
+          wx:key="key"
+          class="pill-btn {{currentFilterKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onSelectFilter"
+        >
+          {{item.name}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 几何变换与云端导出快捷栏 -->
     <view class="tools-row">
       <view class="tool-btn" bindtap="handleRotate">
         <text class="tool-icon">🔄</text>
@@ -123,13 +198,17 @@
         <text class="tool-icon">↕️</text>
         <text class="tool-text">垂直翻转</text>
       </view>
+      <view class="tool-btn" bindtap="handleOpenCloudParams">
+        <text class="tool-icon">☁️</text>
+        <text class="tool-text">云裁剪参 (0ms)</text>
+      </view>
     </view>
 
     <!-- 确定导出主按钮 -->
     <button class="btn-export" type="primary" loading="{{isExporting}}" bindtap="handleExport">
-      {{isExporting ? '生成裁剪图中...' : '导出高质量裁剪图'}}
+      {{isExporting ? 'Canvas 2D 导出中...' : '导出高质量滤镜裁剪图'}}
     </button>
-  </view>
+  </scroll-view>
 
   <!-- 导出结果弹窗 -->
   <view class="result-modal" wx:if="{{resultDialogVisible}}">
@@ -143,12 +222,43 @@
         <image class="preview-img" src="{{resultImageUrl}}" mode="aspectFit" />
         <view class="preview-meta">
           <text class="meta-item">尺寸: {{resultMeta.width}} × {{resultMeta.height}} px</text>
-          <text class="meta-item">引擎: Wechat Canvas 2D</text>
+          <text class="meta-item">滤镜: {{currentFilterName}} (Canvas 2D Shader 对齐)</text>
+          <text class="meta-item">微调: {{currentFineAngle}}° | 缩放: {{currentZoom}}x</text>
         </view>
       </view>
       <view class="modal-footer">
         <button class="btn-save" type="primary" bindtap="saveToAlbum">保存到相册</button>
         <button class="btn-cancel" bindtap="closeResultDialog">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 云端零开销数学坐标弹窗 -->
+  <view class="result-modal" wx:if="{{cloudDialogVisible}}">
+    <view class="modal-mask" bindtap="closeCloudDialog"></view>
+    <view class="modal-content cloud-modal-content">
+      <view class="modal-header">
+        <text class="modal-title">0ms 纯数学选区与云存储裁剪参数</text>
+        <text class="modal-close" bindtap="closeCloudDialog">✕</text>
+      </view>
+      <view class="modal-body cloud-body">
+        <view class="cloud-info-card">
+          <view class="cloud-item-title">物理像素选区 (pixelCrop):</view>
+          <view class="code-box">x: {{cloudData.pixelCrop.x}}, y: {{cloudData.pixelCrop.y}}, w: {{cloudData.pixelCrop.width}}, h: {{cloudData.pixelCrop.height}}</view>
+        </view>
+        <view class="cloud-info-card">
+          <view class="cloud-item-title">阿里云 OSS 裁剪参数:</view>
+          <view class="code-box">{{cloudData.cloudParams.aliyunOss}}</view>
+          <button class="btn-copy-small" size="mini" data-text="{{cloudData.cloudParams.aliyunOss}}" bindtap="copyText">复制 OSS 参数</button>
+        </view>
+        <view class="cloud-info-card">
+          <view class="cloud-item-title">腾讯云 COS 裁剪参数:</view>
+          <view class="code-box">{{cloudData.cloudParams.tencentCos}}</view>
+          <button class="btn-copy-small" size="mini" data-text="{{cloudData.cloudParams.tencentCos}}" bindtap="copyText">复制 COS 参数</button>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-save" type="primary" bindtap="closeCloudDialog">确定</button>
       </view>
     </view>
   </view>

@@ -40,7 +40,25 @@
   border-radius: 50%;
 }
 
-/* Grid lines */
+/* Grid container and lines */
+.omni-crop-grid-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.grid-touch-hidden {
+  opacity: 0;
+}
+
+.grid-touch-visible {
+  opacity: 1;
+}
+
 .omni-crop-grid-line {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.35);

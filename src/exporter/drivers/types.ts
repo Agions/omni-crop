@@ -1,4 +1,4 @@
-import { AreaPixels, Flip, CropShape } from '../../core';
+import { AreaPixels, Flip, CropShape, CropFilterOptions } from '../../core';
 
 export type ImageOutputFormat = 'jpg' | 'png' | 'webp';
 export type ImageOutputType = 'tempFilePath' | 'base64' | 'blob';
@@ -10,6 +10,7 @@ export interface ExportOptions {
   maxResolution?: number;
   dpr?: number;
   cropShape?: CropShape;
+  filter?: CropFilterOptions;
 }
 
 export interface CropResult {
@@ -28,6 +29,7 @@ export interface RenderParams {
   cropShape?: CropShape;
   outputWidth: number;
   outputHeight: number;
+  filter?: CropFilterOptions;
 }
 
 export interface ICanvasDriver {
@@ -36,4 +38,5 @@ export interface ICanvasDriver {
   createOffscreenCanvas(width: number, height: number, dpr?: number): Promise<any>;
   render(canvas: any, params: RenderParams): Promise<void>;
   export(canvas: any, options: ExportOptions): Promise<CropResult>;
+  destroy?(): void;
 }

@@ -1,4 +1,4 @@
-import { AreaPixels, Flip, CropShape } from '../core';
+import { AreaPixels, Flip, CropShape, CropFilterOptions } from '../core';
 import { ICanvasDriver, ExportOptions, CropResult } from './drivers/types';
 
 export interface CropExecutionOptions {
@@ -7,6 +7,7 @@ export interface CropExecutionOptions {
   rotation?: number;
   flip?: Flip;
   cropShape?: CropShape;
+  filter?: CropFilterOptions;
   output?: ExportOptions;
   driver: ICanvasDriver;
 }
@@ -21,6 +22,7 @@ export async function getCroppedImage(options: CropExecutionOptions): Promise<Cr
     rotation = 0,
     flip = { horizontal: false, vertical: false },
     cropShape = 'rect',
+    filter,
     output = {},
     driver,
   } = options;
@@ -71,6 +73,7 @@ export async function getCroppedImage(options: CropExecutionOptions): Promise<Cr
       cropShape,
       outputWidth: outW * dpr,
       outputHeight: outH * dpr,
+      filter: effectiveOutput.filter ?? filter,
     });
 
     // 5. Export canvas to file path or Base64
